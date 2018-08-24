@@ -17,11 +17,9 @@ A boilerplate to help you get you started in Craft CMS 3.
 
 Get to your projects directory in your terminal then:
 
-composer create-project chasegiunta/craft-vue PATH
-
-1. `npm i && composer install && cp .env.example .env`
+1. `composer create-project ben-rogerson/craft-gulp PATH`
 2. Create a local database (Sequel Pro is a good choice)
-3. Run `./craft setup`
+3. `npm i`
 4. Setup a site with Valet or Homestead in the `public` folder
 5. Open `package.json` and update your urls in `paths.urls`
 6. Start your dev server with `npm run dev`
