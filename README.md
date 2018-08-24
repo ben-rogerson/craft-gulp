@@ -1,4 +1,4 @@
-#craft-gulp
+# craft-gulp
 
 A boilerplate to help you get you started in Craft CMS 3.
 
@@ -13,9 +13,11 @@ A boilerplate to help you get you started in Craft CMS 3.
 
 - Build script coming soon
 
-### Getting started ###
+### Getting started
 
-Go to the root directory of this project in your terminal then:
+Get to your projects directory in your terminal then:
+
+composer create-project chasegiunta/craft-vue PATH
 
 1. `npm i && composer install && cp .env.example .env`
 2. Create a local database (Sequel Pro is a good choice)
