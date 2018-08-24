@@ -1,0 +1,117 @@
+{
+  "name": "craft-gulp",
+  "description": "Craft CMS + SCSS + JS + Gulp",
+  "version": "1.0.0",
+  "main": "gulpfile.js",
+  "private": true,
+  "scripts": {
+    "dev": "gulp",
+    "clean": "gulp clean"
+  },
+  "paths": {
+    "urls": {
+      "production": "https://ADDTHIS",
+      "staging": "https://ADDTHIS",
+      "dev": "https://ADDTHIS.test"
+    },
+    "templates": "templates/",
+    "src": {
+      "base": "src/",
+      "img": "src/img/",
+      "js": "src/js/",
+      "scss": "src/scss/",
+      "icons": "src/icons/",
+      "static": "src/static/"
+    },
+    "temp": {
+      "base": "./temp/",
+      "css": "./temp/css/",
+      "js": "./temp/js/",
+      "html": "./temp/html/",
+      "img": "./temp/img/"
+    },
+    "built": {
+      "base": "./",
+      "public": "./public/",
+      "assets": "./public/assets/",
+      "js": "./public/assets/js/",
+      "css": "./public/assets/css/",
+      "img": "./public/assets/img/",
+      "static": "./public/static/"
+    }
+  },
+  "vars": {
+    "siteCssName": "site.combined.min.css",
+    "scssName": "main.scss",
+    "cssName": "main.css"
+  },
+  "globs": {
+    "img": [
+      "./public/assets/img/"
+    ],
+    "distCss": [
+      "./node_modules/normalize.css/normalize.css",
+      "./temp/css/*.css"
+    ],
+    "critical": [
+      {
+        "url": "",
+        "template": "index"
+      },
+      {
+        "url": "blog/example",
+        "template": "blog"
+      }
+    ],
+    "globalJs": [
+    ],
+    "distJs": [
+      "./temp/js/main.js"
+    ],
+    "babelJs": [
+      "./src/js/*.js"
+    ],
+    "inlineJs": [
+    ]
+  },
+  "dependencies": {
+    "lodash": "^4.17.10",
+    "normalize.css": "^8.0.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-env": "^1.7.0",
+    "browser-sync": "^2.24.6",
+    "chalk": "^2.4.1",
+    "critical": "1.3.4",
+    "fancy-log": "^1.3.2",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-babel": "^7.0.1",
+    "gulp-cached": "^1.1.1",
+    "gulp-changed": "^3.2.0",
+    "gulp-clean": "^0.4.0",
+    "gulp-color": "0.0.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-cssnano": "^2.1.3",
+    "gulp-header": "^2.0.5",
+    "gulp-if": "^2.0.2",
+    "gulp-imagemin": "^4.1.0",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-newer": "^1.4.0",
+    "gulp-notify": "^3.2.0",
+    "gulp-plumber": "^1.2.0",
+    "gulp-print": "^5.0.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.1",
+    "gulp-size": "^3.0.0",
+    "gulp-svgmin": "^1.2.4",
+    "gulp-svgstore": "^6.1.1",
+    "gulp-twig": "^1.2.0",
+    "gulp-uglify": "^3.0.1",
+    "moment": "^2.22.2",
+    "node-notifier": "^5.2.1"
+  }
+}
