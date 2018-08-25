@@ -30,7 +30,7 @@ const config = {
     },
 }
 
-// handle errors
+// Handle errors
 function handleError(err) {
 
     const errorMessage = (typeof err.message !== 'undefined') ? err.message.toString() : null
@@ -50,7 +50,6 @@ function handleError(err) {
 
 // Clean various files/directories
 gulp.task('clean', () => {
-    $.fancyLog("-> Removing build/built files");
     const filesFolders = [
         `${pkg.paths.temp.base}`, // Remove whole temp folder
         `${pkg.paths.built.css}`, // Remove whole built css folder
@@ -61,15 +60,13 @@ gulp.task('clean', () => {
     return gulp.src(filesFolders, {read: false}).pipe($.clean());
 });
 
-// scss - build the scss to the build folder, including the required paths, and writing out a sourcemap
-gulp.task('scss', () => {
-    $.fancyLog("-> Compiling SCSS");
+// Task to import and prefix css
+gulp.task('prefixing css', () => {
     return gulp.src(pkg.paths.src.scss + pkg.vars.scssName)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.sass({
-                includePaths: [pkg.paths.scss, 'node_modules']
-            }).on("error", $.sass.logError))
-        .pipe($.cached("sass_compile"))
+            includePaths: [pkg.paths.scss, 'node_modules']
+        }).on("error", $.sass.logError))
         .pipe($.autoprefixer({
             browsers: [
                 '> 0.5% in AU',
@@ -78,13 +75,13 @@ gulp.task('scss', () => {
                 'ie >= 10'
             ]
         }))
+        .pipe($.cached("sass_compile"))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.temp.css));
 });
 
-// css task - combine & minimize any disribution CSS into the public css folder
-gulp.task("css", ["scss"], () => {
-    $.fancyLog("-> Building CSS");
+// Task to compile css
+gulp.task("combining css", ["prefixing css"], () => {
     return gulp.src(pkg.globs.distCss)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.newer({dest: pkg.paths.built.css + pkg.vars.siteCssName}))
@@ -110,9 +107,8 @@ gulp.task("css", ["scss"], () => {
 });
 
 // babel js task - transpile our Javascript into the build directory
-gulp.task("js-babel", () => {
-    $.fancyLog("-> Transpiling Javascript via Babel");
-        return gulp.src(pkg.globs.babelJs)
+gulp.task("bablifying javascript", () => {
+    return gulp.src(pkg.globs.babelJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.newer({dest: pkg.paths.temp.js}))
         .pipe($.babel())
@@ -120,9 +116,8 @@ gulp.task("js-babel", () => {
         .pipe(gulp.dest(pkg.paths.temp.js));
 });
 
-// js task - minimize any distribution Javascript into the public js folder, and add our banner to it
-gulp.task("js-built", ["js-babel"], () => {
-    $.fancyLog("-> Building built JS");
+// js task - minimize any distribution Javascript into the public js folder
+gulp.task("moving javascript to build", ["bablifying javascript"], () => {
     return gulp.src(pkg.globs.distJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if(["*.js", "!*.min.js"],
@@ -156,14 +151,13 @@ gulp.task("js-built", ["js-babel"], () => {
 });
 
 
-// inline js task - minimize the inline Javascript into _inlinejs in the templates path
-gulp.task("js-inline", () => {
-    $.fancyLog("-> Copying inline JS");
+// Inline Javascript into _inlinejs  within templates + Maybe minimize
+gulp.task("inlining javascript", () => {
     return gulp.src(pkg.globs.inlineJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if(["*.js", "!*.min.js"],
-            $.newer({dest: pkg.paths.built.js + "_inlinejs", ext: ".min.js"}),
-            $.newer({dest: pkg.paths.built.js + "_inlinejs"})
+            $.newer({dest: `${pkg.paths.built.js}_inlinejs`, ext: ".min.js"}),
+            $.newer({dest: `${pkg.paths.built.js}_inlinejs`})
         ))
         .pipe($.if((["*.js", "!*.min.js"] && config.compress),
             $.uglify({
@@ -191,8 +185,7 @@ gulp.task("js-inline", () => {
 });
 
 // js task that moves all built js to public
-gulp.task("scripts", ["js-built", "js-inline"], () => {
-    $.fancyLog("-> Building js");
+gulp.task("combining javascript", ["moving javascript to build", "inlining javascript"], () => {
     return gulp.src(pkg.globs.globalJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if((["*.js", "!*.min.js"] && config.compress),
@@ -204,8 +197,7 @@ gulp.task("scripts", ["js-built", "js-inline"], () => {
         .pipe($.browserSync.stream({match: '**/*.js'}));
 });
 
-gulp.task('imagemin', () => {
-    $.fancyLog("-> Minifying images");
+gulp.task('compressing images', () => {
     return gulp.src(`${pkg.paths.src.img}**/*.{png,jpg,jpeg,gif,svg}`)
         .pipe($.newer({dest: pkg.paths.built.img}))
         .pipe($.imagemin([
@@ -223,7 +215,7 @@ gulp.task('imagemin', () => {
         .pipe(gulp.dest(pkg.paths.built.img));
 });
 
-gulp.task('icons', () => {
+gulp.task('building svg icon', () => {
     return gulp.src(
         `${pkg.paths.src.icons}*.svg`, {base: `${pkg.paths.src.icons}`})
     .pipe($.svgmin())
@@ -234,19 +226,19 @@ gulp.task('icons', () => {
 
 
 const defaultTasks = [
-    'scripts',
-    'css',
-    'icons',
-    'imagemin',
+    'combining javascript',
+    'combining css',
+    'building svg icon',
+    'compressing images',
 ];
 
 // Default task
 gulp.task('default', defaultTasks, () => {
     $.browserSync.init(config.browserSync);
-    gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['css']);
-    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['js-built']);
-    gulp.watch(`${pkg.paths.src.img}**/*`, ['imagemin']).on('change', $.browserSync.reload);
-    gulp.watch(`${pkg.paths.src.icons}*.svg`, ['icons']).on('change', $.browserSync.reload);
+    gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['combining css']);
+    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['moving javascript to build']);
+    gulp.watch(`${pkg.paths.src.img}**/*`, ['compressing images']).on('change', $.browserSync.reload);
+    gulp.watch(`${pkg.paths.src.icons}*.svg`, ['building svg icon']).on('change', $.browserSync.reload);
 });
 
 
