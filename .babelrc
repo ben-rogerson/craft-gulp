@@ -1,6 +1,15 @@
 {
-  "presets": ["env"],
+  "presets": [[
+    "@babel/preset-env", {
+      "shippedProposals": true,
+      "forceAllTransforms": true
+    }
+  ]],
   "compact": true,
   "comments": false,
-  "plugins": ["transform-object-rest-spread"]
+  "plugins": [
+    ["@babel/plugin-proposal-object-rest-spread", {
+      "useBuiltIns": true
+    }]
+  ]
 }

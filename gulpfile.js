@@ -1,12 +1,6 @@
-// package vars
 const pkg = require("./package.json");
-
-// gulp
 const gulp = require("gulp");
-
-// print name of files
 const print = require('gulp-print').default;
-
 const notifier = require('node-notifier');
 
 // load all plugins in "devDependencies" into the variable $
@@ -106,18 +100,20 @@ gulp.task("combining css", ["prefixing css"], () => {
         .pipe($.browserSync.stream({match: '**/*.css'}));
 });
 
-// babel js task - transpile our Javascript into the build directory
-gulp.task("bablifying javascript", () => {
+// babel js task - transpile our js into the build directory
+gulp.task("linting and transpiling js", () => {
     return gulp.src(pkg.globs.babelJs)
-        .pipe($.plumber({errorHandler: handleError}))
+        .pipe($.plumber({errorHandler: ()=>{}}))
+        .pipe($.eslint())
+        .pipe($.eslint.format('node_modules/eslint-formatter-pretty'))
         .pipe($.newer({dest: pkg.paths.temp.js}))
         .pipe($.babel())
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.temp.js));
 });
 
-// js task - minimize any distribution Javascript into the public js folder
-gulp.task("moving javascript to build", ["bablifying javascript"], () => {
+// js task - minimize any distribution js into the public js folder
+gulp.task("moving js to build", ["linting and transpiling js"], () => {
     return gulp.src(pkg.globs.distJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if(["*.js", "!*.min.js"],
@@ -151,8 +147,8 @@ gulp.task("moving javascript to build", ["bablifying javascript"], () => {
 });
 
 
-// Inline Javascript into _inlinejs  within templates + Maybe minimize
-gulp.task("inlining javascript", () => {
+// Inline js into _inlinejs  within templates + Maybe minimize
+gulp.task("inlining js", () => {
     return gulp.src(pkg.globs.inlineJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if(["*.js", "!*.min.js"],
@@ -185,7 +181,7 @@ gulp.task("inlining javascript", () => {
 });
 
 // js task that moves all built js to public
-gulp.task("combining javascript", ["moving javascript to build", "inlining javascript"], () => {
+gulp.task("combining js", ["moving js to build", "inlining js"], () => {
     return gulp.src(pkg.globs.globalJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if((["*.js", "!*.min.js"] && config.compress),
@@ -226,7 +222,7 @@ gulp.task('building svg icon', () => {
 
 
 const defaultTasks = [
-    'combining javascript',
+    'combining js',
     'combining css',
     'building svg icon',
     'compressing images',
@@ -236,7 +232,7 @@ const defaultTasks = [
 gulp.task('default', defaultTasks, () => {
     $.browserSync.init(config.browserSync);
     gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['combining css']);
-    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['moving javascript to build']);
+    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['moving js to build']);
     gulp.watch(`${pkg.paths.src.img}**/*`, ['compressing images']).on('change', $.browserSync.reload);
     gulp.watch(`${pkg.paths.src.icons}*.svg`, ['building svg icon']).on('change', $.browserSync.reload);
 });
