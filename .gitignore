@@ -14,9 +14,9 @@ storage/logs
 storage/runtime
 
 # Craft > Public folder items
-**/assets/volumes
-**/assets/cpresources
-**/imager
+public/assets/volumes
+public/cpresources
+public/imager
 
 # Common files
 .history

@@ -1,11 +1,20 @@
 // =============================================================================
 // Main
 // =============================================================================
+@import 'normalize.css';
+@import '2.css';
+
 
 body {
+  box-sizing: border-box;
   background: #dd3e28;
   color: #FFF;
   min-height: 100vh;
+  display: flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
+  font-size: 5rem;
+  padding: 2rem;
 }
+
