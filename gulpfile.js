@@ -1,6 +1,5 @@
 const pkg = require('./package.json');
 const gulp = require('gulp');
-const print = require('gulp-print').default;
 const notifier = require('node-notifier');
 const exec = require('child_process').exec;
 
@@ -10,8 +9,12 @@ const $ = require('gulp-load-plugins')({
     scope: ['devDependencies']
 });
 
+/**
+ * Define the config for your project
+ * More options can be configured in `package.json`
+ */
 const config = {
-    compress: false,
+    compress: false, // minify/compress css and js resources
     browserSync: {
         proxy: pkg.paths.urls.dev,
         files: [
@@ -25,20 +28,23 @@ const config = {
     },
 }
 
-// Handle errors
-
-const beep = () => {
+/**
+ * Play a wav file
+ */
+const playSound = filePath => {
     var os = require('os');
-    var file = './config/error.wav';
-    if (os.platform() === 'linux') {
-      exec('aplay ' + file);
+    if (!os.platform() === 'linux') {
+      exec('aplay ' + filePath);
     } else {
-      exec('afplay ' + file);
+      exec('afplay ' + filePath);
     }
 };
 
+/**
+ * Handle error messages with the native notifier
+ */
 function handleError(err, emitEnd = true) {
-    beep();
+    playSound('./config/error.wav');
     const errorMessage = (typeof err.message !== 'undefined') ? err.message.toString() : null
     notifier.notify({
         'title': 'Error',
@@ -49,10 +55,11 @@ function handleError(err, emitEnd = true) {
     if (emitEnd) this.emit('end');
 };
 
-// Clean various files/directories
+/**
+ * Delete files from various directories
+ */
 gulp.task('clean', () => {
     const filesFolders = [
-        `${pkg.paths.temp.base}`, // Remove whole temp folder
         `${pkg.paths.built.css}`, // Remove whole built css folder
         `${pkg.paths.built.js}`, // Remove whole built js folder
         `${pkg.paths.built.img}`, // Remove whole built img folder
@@ -61,7 +68,9 @@ gulp.task('clean', () => {
     return gulp.src(filesFolders, {read: false}).pipe($.clean());
 });
 
-// Task to compile css
+/**
+ * CSS > Autoprefix and minify
+ */
 gulp.task('compiling css', () => {
     return gulp.src(`${pkg.paths.src.scss}*.scss`)
         .pipe($.plumber({errorHandler: handleError}))
@@ -97,7 +106,9 @@ gulp.task('compiling css', () => {
         .pipe($.browserSync.stream({match: '**/*.css'}));
 });
 
-// browserify, babelify and uglify the js
+/**
+ * JS > Browserify, babelify and uglify the js into 'assets/js/app.js'
+ */
 gulp.task('compiling js', () => {
     return gulp.src(pkg.globs.babelJs)
         .pipe($.bro({
@@ -131,7 +142,10 @@ gulp.task('compiling js', () => {
         .pipe($.browserSync.stream({match: '**/*.js'}));
 });
 
-// Inline js into _inlinejs  within templates + Maybe minimize
+/**
+ * JS > Move scripts intended for inlining into 'templates/_inlinejs'
+ * Runs once when you start the dev/prod process
+ */
 gulp.task('creating inline js', () => {
     return gulp.src(pkg.globs.inlineJs)
         .pipe($.plumber({errorHandler: handleError}))
@@ -142,7 +156,7 @@ gulp.task('creating inline js', () => {
             $.uglify({
                 compress: {
                     unused: true,
-                    dead_code: true, // big one--strip code that will never execute
+                    dead_code: true, // big one - strip code that will never execute
                     warnings: false, // good for prod apps so users can't peek behind curtain
                     drop_debugger: true,
                     conditionals: true,
@@ -160,7 +174,10 @@ gulp.task('creating inline js', () => {
         .pipe(gulp.dest(`${pkg.paths.templates}_inlinejs`));
 });
 
-// js task that moves all built js to public
+/**
+ * JS > Combines scripts into a single 'assets/js/plugins.js' package
+ * Runs once when you start the dev/prod process
+ */
 gulp.task('combining global js', () => {
     return gulp.src(pkg.globs.globalJs)
         .pipe($.plumber({errorHandler: handleError}))
@@ -177,6 +194,9 @@ gulp.task('combining global js', () => {
         .pipe($.browserSync.stream({match: '**/*.js'}));
 });
 
+/**
+ * Images > Compresses any images/vectors added in 'src/img'
+ */
 gulp.task('compressing images', () => {
     return gulp.src(`${pkg.paths.src.img}**/*.{png,jpg,jpeg,gif,svg}`)
         .pipe($.newer({dest: pkg.paths.built.img}))
@@ -195,6 +215,9 @@ gulp.task('compressing images', () => {
         .pipe(gulp.dest(pkg.paths.built.img));
 });
 
+/**
+ * SVG Icon > Combine a series of svgs into a single sprite in 'assets/icons.svg'
+ */
 gulp.task('building svg icon', () => {
     return gulp.src(
         `${pkg.paths.src.icons}*.svg`,
@@ -216,8 +239,12 @@ const defaultTasks = [
     'compressing images',
 ];
 
-// Default task
+/**
+ * This runs when you 'npm run dev' or 'gulp'
+ */
 gulp.task('default', defaultTasks, () => {
+
+    // Once the default tasks are run we start a series of dev file watchers
     $.browserSync.init(config.browserSync);
     gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['compiling css']);
     gulp.watch(`${pkg.paths.src.js}**/*.js`, ['compiling js']);
@@ -228,12 +255,11 @@ gulp.task('default', defaultTasks, () => {
 
 
 /**
- *Extra goodies
+ * Generate and move critical css to the templates folder
  */
-
-function processCriticalCSS(element, i, callback) {
+function createCriticalCSS(element, i, callback) {
     const criticalSrc = pkg.urls.critical + element.url;
-    const criticalDest = pkg.paths.templates + '_critical/' + element.template + '_critical.css';
+    const criticalDest = `${pkg.paths.templates}_critical/${element.template}_critical.css`;
 
     let criticalWidth = 1200;
     let criticalHeight = 1200;
@@ -258,9 +284,11 @@ function processCriticalCSS(element, i, callback) {
     });
 }
 
-//critical css task
-gulp.task('critical-css', ['css'], (callback) => {
-    doSynchronousLoop(pkg.globs.critical, processCriticalCSS, () => {
+/**
+ * Create critical css with a headless browser
+ */
+gulp.task('critical-css', ['compiling css'], callback => {
+    doSynchronousLoop(pkg.globs.critical, createCriticalCSS, () => {
         callback();
     });
 });
