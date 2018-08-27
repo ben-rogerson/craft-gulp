@@ -37,7 +37,7 @@ const beep = () => {
     }
 };
 
-function handleError(err) {
+function handleError(err, emitEnd = true) {
     beep();
     const errorMessage = (typeof err.message !== 'undefined') ? err.message.toString() : null
     notifier.notify({
@@ -46,7 +46,7 @@ function handleError(err) {
     });
     const errorStack = (typeof err.stack !== 'undefined') ? err.stack.toString() : err
     console.log($.color(errorStack, 'RED'));
-    // this.emit('end');
+    if (emitEnd) this.emit('end');
 };
 
 // Clean various files/directories
@@ -61,14 +61,13 @@ gulp.task('clean', () => {
     return gulp.src(filesFolders, {read: false}).pipe($.clean());
 });
 
-// Task to import and prefix css
-gulp.task('prefixing css', () => {
-    return gulp.src(pkg.paths.src.scss + pkg.vars.scssName)
+// Task to compile css
+gulp.task('compiling css', () => {
+    return gulp.src(`${pkg.paths.src.scss}*.scss`)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.sass({
             includePaths: [pkg.paths.scss, 'node_modules']
         }))
-        .pipe($.cached("sass_compile"))
         .pipe($.autoprefixer({
             browsers: [
                 '> 0.5% in AU',
@@ -77,17 +76,7 @@ gulp.task('prefixing css', () => {
                 'ie >= 10'
             ]
         }))
-        .pipe($.size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest(pkg.paths.temp.css));
-});
-
-// Task to compile css
-gulp.task('combining css', ['prefixing css'], () => {
-    return gulp.src(pkg.globs.distCss)
-        .pipe($.plumber({errorHandler: handleError}))
-        .pipe($.newer({dest: pkg.paths.built.css + pkg.vars.siteCssName}))
-        .pipe(print())
-        .pipe($.concat(pkg.vars.siteCssName))
+        .pipe($.cached("sass_compile"))
         .pipe(
             $.if((config.compress),
             $.cssnano({
@@ -102,34 +91,23 @@ gulp.task('combining css', ['prefixing css'], () => {
                 minifySelectors: true
             }),
         ))
+        .pipe($.concat(pkg.vars.siteCssName))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.built.css))
         .pipe($.browserSync.stream({match: '**/*.css'}));
 });
 
-// babel js task - transpile our js into the build directory
-gulp.task('transpiling js', () => {
+// browserify, babelify and uglify the js
+gulp.task('compiling js', () => {
     return gulp.src(pkg.globs.babelJs)
         .pipe($.bro({
             transform: [
                 [ 'babelify', { global: true } ]
             ],
             paths: ['./node_modules', pkg.paths.src.js],
-            error: error => handleError(error)
+            error: error => handleError(error, false)
         }))
         .pipe($.plumber({errorHandler: handleError}))
-        .pipe($.size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest(pkg.paths.temp.js));
-});
-
-// js task - minimize any distribution js into the public js folder
-gulp.task('moving js to build', ['transpiling js'], () => {
-    return gulp.src(pkg.globs.distJs)
-        .pipe($.plumber({errorHandler: handleError}))
-        .pipe($.if(['*.js', '!*.min.js'],
-            $.newer({dest: pkg.paths.built.js, ext: '.min.js'}),
-            $.newer({dest: pkg.paths.built.js})
-        ))
         .pipe($.if((['*.js', '!*.min.js'] && config.compress),
             $.uglify({
                 compress: {
@@ -148,21 +126,16 @@ gulp.task('moving js to build', ['transpiling js'], () => {
                 }
             }),
         ))
-        .pipe($.if(['*.js', '!*.min.js'],
-            $.rename({suffix: '.min'})
-        ))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.built.js))
         .pipe($.browserSync.stream({match: '**/*.js'}));
 });
 
-
 // Inline js into _inlinejs  within templates + Maybe minimize
-gulp.task('inlining js', () => {
+gulp.task('creating inline js', () => {
     return gulp.src(pkg.globs.inlineJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if(['*.js', '!*.min.js'],
-            $.newer({dest: `${pkg.paths.built.js}_inlinejs`, ext: '.min.js'}),
             $.newer({dest: `${pkg.paths.built.js}_inlinejs`})
         ))
         .pipe($.if((['*.js', '!*.min.js'] && config.compress),
@@ -183,21 +156,22 @@ gulp.task('inlining js', () => {
                 }
             }),
         ))
-        .pipe($.if(['*.js', '!*.min.js'],
-            $.rename({suffix: '.min'})
-        ))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(`${pkg.paths.templates}_inlinejs`));
 });
 
 // js task that moves all built js to public
-gulp.task('combining js', ['moving js to build', 'inlining js'], () => {
+gulp.task('combining global js', () => {
     return gulp.src(pkg.globs.globalJs)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.if((['*.js', '!*.min.js'] && config.compress),
-            $.uglify(),
+            $.uglify({
+                output: {
+                    comments: false
+                }
+            }),
         ))
-        .pipe($.concat('plugins.min.js'))
+        .pipe($.concat(pkg.vars.pluginsJsName))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.built.js))
         .pipe($.browserSync.stream({match: '**/*.js'}));
@@ -234,8 +208,10 @@ gulp.task('building svg icon', () => {
 });
 
 const defaultTasks = [
-    'combining js',
-    'combining css',
+    'combining global js',
+    'creating inline js',
+    'compiling js',
+    'compiling css',
     'building svg icon',
     'compressing images',
 ];
@@ -243,9 +219,10 @@ const defaultTasks = [
 // Default task
 gulp.task('default', defaultTasks, () => {
     $.browserSync.init(config.browserSync);
-    gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['combining css']);
-    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['moving js to build']);
+    gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['compiling css']);
+    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['compiling js']);
     gulp.watch(`${pkg.paths.src.img}**/*`, ['compressing images']).on('change', $.browserSync.reload);
+    gulp.watch(`${pkg.paths.templates}*.twig`).on('change', $.browserSync.reload);
     gulp.watch(`${pkg.paths.src.icons}*.svg`, ['building svg icon']).on('change', $.browserSync.reload);
 });
 
@@ -256,7 +233,7 @@ gulp.task('default', defaultTasks, () => {
 
 function processCriticalCSS(element, i, callback) {
     const criticalSrc = pkg.urls.critical + element.url;
-    const criticalDest = pkg.paths.templates + '_critical/' + element.template + '_critical.min.css';
+    const criticalDest = pkg.paths.templates + '_critical/' + element.template + '_critical.css';
 
     let criticalWidth = 1200;
     let criticalHeight = 1200;
@@ -264,7 +241,6 @@ function processCriticalCSS(element, i, callback) {
         criticalWidth = 600;
         criticalHeight = 19200;
     }
-    $.fancyLog('-> Generating critical CSS: ' + $.chalk.cyan(criticalSrc) + ' -> ' + $.chalk.magenta(criticalDest));
     $.critical.generate({
         src: criticalSrc,
         dest: criticalDest,
@@ -283,9 +259,8 @@ function processCriticalCSS(element, i, callback) {
 }
 
 //critical css task
-gulp.task('criticalcss', ['css'], (callback) => {
+gulp.task('critical-css', ['css'], (callback) => {
     doSynchronousLoop(pkg.globs.critical, processCriticalCSS, () => {
-        // all done
         callback();
     });
 });

@@ -20,11 +20,6 @@
       "scss": "src/scss/",
       "icons": "src/icons/"
     },
-    "temp": {
-      "base": "./temp/",
-      "css": "./temp/css/",
-      "js": "./temp/js/"
-    },
     "built": {
       "base": "./",
       "assets": "./public/assets/",
@@ -34,13 +29,17 @@
     }
   },
   "vars": {
-    "siteCssName": "site.combined.min.css",
-    "scssName": "main.scss"
+    "siteCssName": "styles.css",
+    "pluginsJsName": "plugins.js"
   },
   "globs": {
-    "distCss": [
-      "./temp/css/*.css"
+    "babelJs": [
+      "./src/js/*.js"
     ],
+    "globalJs": [
+      "node_modules/jquery/dist/jquery.slim.min.js"
+    ],
+    "inlineJs": [],
     "critical": [
       {
         "url": "",
@@ -51,20 +50,9 @@
         "template": "blog"
       }
     ],
-    "globalJs": [
-      "node_modules/jquery/dist/jquery..slim.min.js"
-    ],
-    "distJs": [
-      "./temp/js/main.js"
-    ],
-    "babelJs": [
-      "./src/js/*.js"
-    ],
-    "inlineJs": []
   },
   "dependencies": {
-    "jquery": "^3.3.1",
-    "normalize.css": "^8.0.0"
+    "jquery": "^3.3.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-rc.3",
