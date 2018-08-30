@@ -2,6 +2,8 @@ const pkg = require('./package.json');
 const gulp = require('gulp');
 const notifier = require('node-notifier');
 const exec = require('child_process').exec;
+const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+const isDev = environment === 'development';
 
 // load all plugins in 'devDependencies' into the variable $
 const $ = require('gulp-load-plugins')({
@@ -74,6 +76,9 @@ gulp.task('clean', () => {
 gulp.task('compiling css', () => {
     return gulp.src(`${pkg.paths.src.scss}*.scss`)
         .pipe($.plumber({errorHandler: handleError}))
+        .pipe($.sassVariables({
+            $isDev: isDev
+        }))
         .pipe($.sass({
             includePaths: [pkg.paths.scss, 'node_modules']
         }))
@@ -85,9 +90,9 @@ gulp.task('compiling css', () => {
                 'ie >= 10'
             ]
         }))
-        .pipe($.cached("sass_compile"))
+        .pipe($.cached('sass_compile'))
         .pipe(
-            $.if((config.compress),
+            $.if(config.compress,
             $.cssnano({
                 safe: true,
                 autoprefixer: false,
@@ -100,7 +105,7 @@ gulp.task('compiling css', () => {
                 minifySelectors: true
             }),
         ))
-        .pipe($.concat(pkg.vars.siteCssName))
+        .pipe($.concat(pkg.vars.cssExportName))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.built.css))
         .pipe($.browserSync.stream({match: '**/*.css'}));
@@ -176,7 +181,7 @@ gulp.task('creating inline js', () => {
 
 /**
  * JS > Combines scripts into a single 'assets/js/plugins.js' package
- * Runs once when you start the dev/prod process
+ * Runs once at the beginning of the dev/prod process
  */
 gulp.task('combining global js', () => {
     return gulp.src(pkg.globs.globalJs)
@@ -188,7 +193,7 @@ gulp.task('combining global js', () => {
                 }
             }),
         ))
-        .pipe($.concat(pkg.vars.pluginsJsName))
+        .pipe($.concat(pkg.vars.jsPluginsExportName))
         .pipe($.size({gzip: true, showFiles: true}))
         .pipe(gulp.dest(pkg.paths.built.js))
         .pipe($.browserSync.stream({match: '**/*.js'}));
@@ -225,6 +230,7 @@ gulp.task('building svg icon', () => {
         )
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.svgmin())
+        .pipe($.rename({prefix: 'icon-'}))
         .pipe($.svgstore())
         .pipe(gulp.dest(pkg.paths.built.assets))
         .pipe($.browserSync.stream({match: '**/*.svg'}));
@@ -274,7 +280,7 @@ function createCriticalCSS(element, i, callback) {
         ignore: [],
         base: pkg.paths.built.base,
         css: [
-            pkg.paths.built.css + pkg.vars.siteCssName,
+            pkg.paths.built.css + pkg.vars.cssExportName,
         ],
         minify: true,
         width: criticalWidth,

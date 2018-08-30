@@ -1,6 +1,10 @@
 import './modules/icons';
-import greeting from './modules/module';
 
-console.log('👋 Ola from main.js');
+// Examples
 
-greeting();
+import sayGreeting from './modules/greeting';
+import { isDev } from './utils';
+
+sayGreeting();
+
+console.log(`${ isDev ? `🚧` : `💼` } This app is running in ${ isDev ? `dev` : `production` } mode`);

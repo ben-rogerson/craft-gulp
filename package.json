@@ -7,6 +7,7 @@
   "scripts": {
     "start": "gulp",
     "dev": "gulp",
+    "build": "NODE_ENV=production gulp",
     "clean": "gulp clean"
   },
   "paths": {
@@ -29,8 +30,9 @@
     }
   },
   "vars": {
-    "siteCssName": "styles.css",
-    "pluginsJsName": "plugins.js"
+    "scssSourceName": "main.scss",
+    "cssExportName": "styles.css",
+    "jsPluginsExportName": "plugins.js"
   },
   "globs": {
     "babelJs": [
@@ -52,15 +54,17 @@
     ]
   },
   "dependencies": {
-    "jquery": "^3.3.1"
+    "lodash": "^4.17.10",
+    "read-env": "^1.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babelify": "^9.0.0",
-    "browser-sync": "^2.24.6",
+    "browser-sync": "^2.24.7",
     "browserify": "^16.2.2",
     "browserify-shim": "^3.8.14",
     "chalk": "^2.4.1",
@@ -88,6 +92,7 @@
     "gulp-plumber": "^1.2.0",
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.1",
+    "gulp-sass-variables": "^1.2.0",
     "gulp-size": "^3.0.0",
     "gulp-svgmin": "^1.2.4",
     "gulp-svgstore": "^6.1.1",

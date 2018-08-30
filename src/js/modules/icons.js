@@ -8,7 +8,7 @@
  *
  * 2. In twig, display an icon within the svg like this:
  * {% import 'macros/utils' as utils %}
- * {{ utils.icon('symbolId', 'iconClass(es)') }}
+ * {{ utils.icon('iconFilename', 'iconClass') }}
  */
 
 const bodyElement = document.querySelector('body');
@@ -16,15 +16,23 @@ const bodyAttribute = 'data-icons';
 const iconsPath = bodyElement.getAttribute(bodyAttribute);
 const prepend = (what, where) => where.insertBefore(what, where.firstChild);
 
-if (iconsPath) {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', iconsPath);
-    xhr.onload = () => {
-        if (xhr.status === 200) {
-            const svgIcon = xhr.responseXML.documentElement;
-            svgIcon.style.display = 'none';
+const inlineFile = iconsPath => {
+    if (!iconsPath) return;
+
+    const request = new XMLHttpRequest();
+    request.open('GET', iconsPath, true);
+
+    request.onload = () => {
+        if (request.status >= 200 && request.status < 400) {
+            const svgIcon = request.responseXML.documentElement;
+            svgIcon.setAttribute('display', 'none');
+            svgIcon.setAttribute('aria-hidden', true);
             prepend(svgIcon, bodyElement);
             bodyElement.removeAttribute(bodyAttribute);
         }
     };
+
+    request.send();
 }
+
+inlineFile(iconsPath);
