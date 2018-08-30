@@ -1,0 +1,32 @@
+{#
+================================================================================
+SVG Icons
+================================================================================
+
+Add new icons by dropping a svg into the 'src/icons' folder.
+
+Usage:
+
+{% import '_macros/utils' as utils %}
+{{ utils.icon('iconFilename') }}
+
+#}
+
+{% macro icon(iconFilename, classes) %}
+	<span class="icon {{ "icon-#{iconFilename}" }}{{ classes ? ' ' ~ classes }}">
+		<svg><use xlink:href="{{ "#icon-#{iconFilename}" }}"/></svg>
+	</span>
+{% endmacro %}
+
+
+{#
+================================================================================
+Your macro name
+================================================================================
+
+Short description about what it does and how another dev could use it.
+
+#}
+
+{% macro yourMacro(parameter) %}
+{% endmacro %}

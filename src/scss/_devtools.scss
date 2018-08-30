@@ -1,0 +1,89 @@
+/**
+ * Development styles
+ */
+
+@if ($isDev) {
+
+  // Breakpoint and Density display
+  // Code adapted from `help-media-queries`. Copied rather than imported
+  // because conditional imports aren't supported in scss.
+  // https://github.com/equinusocio/help-media-queries
+
+  $enable-random-color: false;
+
+  /*
+    Screen densities.
+    You don't need to change this values.
+  */
+  $densities: (
+    1x  : '96dpi',
+    15x : '144dpi',
+    2x  : '192dpi',
+    3x  : '288dpi',
+    4x  : '384dpi'
+  ) !default;
+
+  // This code show the flag on page, the flag will show the current active breakpoints
+  :root {
+
+    &::after {
+      font-size: 10px;
+      position: fixed;
+      font-family: -apple-system, BlinkMacSystemFont,'Arial', sans-serif;
+      user-select: none;
+      pointer-events: none;
+      z-index: 999999;
+      bottom: 16px;
+      right: 16px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(2px);
+      box-shadow: none;
+      background: rgba(0,0,0,.6);
+      color: #FFF;
+      border-radius: 2px;
+      font-weight: normal;
+      padding: .5em 1em;
+      letter-spacing: .1em;
+      transition: opacity .25s;
+      box-shadow: 1px 1px 0 rgba(0,0,0,.7);
+
+      // Loop through $breakpoints and generate a random text color if $enable-random-color is TRUE
+      @if $enable-random-color == true {
+        @each $breakpoint in $breakpoints {
+          // Extract the $breakpoint value
+          $breakpoint: nth( $breakpoint, 2 );
+
+          @media screen and ( min-width: $breakpoint ) {
+            background-color: hsl( random( 361 ) - 250, 50%, 30% );
+          }
+        }
+      }
+    }
+
+    // Extract each $density-value value from $densities
+    @each $density in $densities {
+
+      $density-name: nth( $density, 1 );
+      $density-value: nth( $density, 2 );
+      $dpi: unquote( 'min-resolution: #{ $density-value }' );
+
+      // Extract each key and his value form the $breakpoints map
+      @for $i from 1 through length( $breakpoints ) {
+        $size-name: nth( nth( $breakpoints, $i ), 1 );
+        $size: nth( nth( $breakpoints, $i ), 2 );
+
+        &::after {
+          @media screen and ( $dpi ) {
+            content: 'Density: #{ $density-value }';
+
+            @media ( min-width: $size ) {
+              content: '#{ $size-name } (#{ $size }) \a#{ $density-value } (#{ $density-name })' !important;
+            }
+          }
+        }
+      }
+    }
+  }
+}

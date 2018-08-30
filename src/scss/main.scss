@@ -1,17 +1,27 @@
 // =============================================================================
 // Main
 // =============================================================================
-@import 'normalize';
+@import
+'normalize',
+'variables',
+'icon',
+'devtools';
 
 body {
   box-sizing: border-box;
-  background: #dd3e28;
-  color: #FFF;
   min-height: 100vh;
+
+  color: #FFF;
+  background: #dd3e28;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
+  flex-direction: column;
   font-size: 5rem;
   padding: 2rem;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
 }

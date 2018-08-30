@@ -1,5 +1,9 @@
-{% extends '_base' %}
+{% extends '_layouts/base' %}
+{% import '_macros' as utils %}
 
 {% block content %}
-  Go get Crafty!
+
+  <div>Go get Crafty!</div>
+  <div>{{ utils.icon('doughnut') }}</div>
+
 {% endblock %}
