@@ -65,7 +65,6 @@ gulp.task('clean', () => {
         `${pkg.paths.built.css}`, // Remove whole built css folder
         `${pkg.paths.built.js}`, // Remove whole built js folder
         `${pkg.paths.built.img}`, // Remove whole built img folder
-        `${pkg.paths.built.static}` // Remove whole built static folder
     ];
     return gulp.src(filesFolders, {read: false}).pipe($.clean());
 });
@@ -278,7 +277,7 @@ function createCriticalCSS(element, i, callback) {
         dest: criticalDest,
         inline: false,
         ignore: [],
-        base: pkg.paths.built.base,
+        base: './',
         css: [
             pkg.paths.built.css + pkg.vars.cssExportName,
         ],
