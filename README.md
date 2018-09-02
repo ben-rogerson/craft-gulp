@@ -27,5 +27,5 @@ and run the `craft setup` command that՚s mentioned at the end
 - SVG sprite compiling
 - Image compression
 - Critical CSS
-
-- Build script coming soon
+- Build scripts
+- Asset revving
