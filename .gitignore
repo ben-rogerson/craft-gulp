@@ -6,7 +6,8 @@ vendor
 public/assets/css
 public/assets/js
 public/assets/img
-public/assets/icon.svg
+public/assets/icons.svg
+versions.json
 
 # Craft > Storage
 storage/backups
