@@ -2,11 +2,13 @@
 node_modules
 vendor
 
-# Build folders + files
+# Built folders + files
 public/assets/css
 public/assets/js
 public/assets/img
-public/assets/icon.svg
+public/assets/icons.svg
+public/assets/icons-*.svg
+versions.json
 
 # Craft > Storage
 storage/backups

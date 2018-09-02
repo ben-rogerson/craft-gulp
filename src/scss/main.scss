@@ -2,10 +2,10 @@
 // Main
 // =============================================================================
 @import
-'normalize',
-'variables',
-'icon',
-'devtools';
+'base/normalize',
+'base/variables',
+'base/devtools',
+'icon';
 
 body {
   box-sizing: border-box;

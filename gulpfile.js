@@ -2,8 +2,11 @@ const pkg = require('./package.json');
 const gulp = require('gulp');
 const notifier = require('node-notifier');
 const exec = require('child_process').exec;
+const combine = require('stream-combiner2');
+const sequence = require('run-sequence');
 const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const isDev = environment === 'development';
+const isProd = environment === 'production';
 
 // load all plugins in 'devDependencies' into the variable $
 const $ = require('gulp-load-plugins')({
@@ -18,11 +21,11 @@ const $ = require('gulp-load-plugins')({
 const config = {
     compress: false, // minify/compress css and js resources
     browserSync: {
-        proxy: pkg.paths.urls.dev,
-        files: [
-            `${pkg.paths.templates}/**/[^_]*.twig`,
-            `${pkg.paths.built.js}/**/[^_]*.js`
-        ],
+        proxy: pkg.config.devUrl,
+        // files: [
+        //     `${pkg.config.public.scripts}/**/*.js`
+        //     `${pkg.config.public.templates}/**/*.twig`,
+        // ],
         ghostMode: { scroll: false },
         notify: false,
         open: false,
@@ -58,29 +61,81 @@ function handleError(err, emitEnd = true) {
 };
 
 /**
+ * Write a versions file to the build folder
+ */
+const writeVersionFile = () => { return (
+    combine.obj([
+        $.rev.manifest(pkg.config.versions, {
+            merge: true,
+            base: pkg.config.public.assets,
+        }),
+        gulp.dest(pkg.config.public.assets)
+    ])
+)}
+
+/**
+ * Transform scripts with babel and browserify
+ */
+const browserify = () => (
+    combine(
+        $.bro({
+            transform: [
+                [ 'babelify', { global: true } ]
+            ],
+            paths: ['node_modules', pkg.config.public.scripts],
+            error: error => handleError(error, false)
+        })
+    )
+)
+
+/**
+ * Compress css with uglify
+ */
+const compressScripts = () => (
+    combine(
+        $.uglify({
+            compress: {
+                unused: true,
+                dead_code: true, // big one - strip code that will never execute
+                warnings: false, // good for prod apps so users can't peek behind curtain
+                drop_debugger: true,
+                conditionals: true,
+                evaluate: true,
+                drop_console: true, // strips console statements
+                sequences: true,
+                booleans: true,
+            },
+            output: {
+                comments: false
+            }
+        })
+    )
+)
+
+/**
  * Delete files from various directories
  */
 gulp.task('clean', () => {
     const filesFolders = [
-        `${pkg.paths.built.css}`, // Remove whole built css folder
-        `${pkg.paths.built.js}`, // Remove whole built js folder
-        `${pkg.paths.built.img}`, // Remove whole built img folder
+        pkg.config.versions, // Remove versions file
+        pkg.config.public.assets, // Remove whole built assets folder
     ];
     return gulp.src(filesFolders, {read: false}).pipe($.clean());
 });
 
 /**
- * CSS > Autoprefix and minify
+ * Handle project styles
  */
-gulp.task('compiling css', () => {
-    return gulp.src(`${pkg.paths.src.scss}*.scss`)
+gulp.task('styles', () => {
+    return gulp.src(pkg.config.stylesMain.source)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.sassVariables({
             $isDev: isDev
         }))
         .pipe($.sass({
-            includePaths: [pkg.paths.scss, 'node_modules']
+            includePaths: ['node_modules']
         }))
+        .pipe($.cached('styles'))
         .pipe($.autoprefixer({
             browsers: [
                 '> 0.5% in AU',
@@ -89,7 +144,6 @@ gulp.task('compiling css', () => {
                 'ie >= 10'
             ]
         }))
-        .pipe($.cached('sass_compile'))
         .pipe(
             $.if(config.compress,
             $.cssnano({
@@ -104,106 +158,71 @@ gulp.task('compiling css', () => {
                 minifySelectors: true
             }),
         ))
-        .pipe($.concat(pkg.vars.cssExportName))
         .pipe($.size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest(pkg.paths.built.css))
+        .pipe($.rename(pkg.config.stylesMain.destination))
+        .pipe($.if(isProd, $.rev()))
+        .pipe(gulp.dest(pkg.config.public.base))
+        .pipe($.if(isProd, writeVersionFile()))
         .pipe($.browserSync.stream({match: '**/*.css'}));
 });
 
 /**
- * JS > Browserify, babelify and uglify the js into 'assets/js/app.js'
+ * Main script task
  */
-gulp.task('compiling js', () => {
-    return gulp.src(pkg.globs.babelJs)
-        .pipe($.bro({
-            transform: [
-                [ 'babelify', { global: true } ]
-            ],
-            paths: ['./node_modules', pkg.paths.src.js],
-            error: error => handleError(error, false)
-        }))
-        .pipe($.plumber({errorHandler: handleError}))
-        .pipe($.if((['*.js', '!*.min.js'] && config.compress),
-            $.uglify({
-                compress: {
-                    unused: true,
-                    dead_code: true, // big one--strip code that will never execute
-                    warnings: false, // good for prod apps so users can't peek behind curtain
-                    drop_debugger: true,
-                    conditionals: true,
-                    evaluate: true,
-                    drop_console: true, // strips console statements
-                    sequences: true,
-                    booleans: true,
-                },
-                output: {
-                    comments: false
-                }
-            }),
-        ))
+gulp.task('scripts:main', () => {
+    return gulp.src(pkg.config.scriptsMain.source)
+        .pipe(browserify())
+        .pipe($.if(config.compress, compressScripts()))
         .pipe($.size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest(pkg.paths.built.js))
+        .pipe($.rename(pkg.config.scriptsMain.destination))
+        .pipe($.if(isProd, $.rev()))
+        .pipe(gulp.dest(pkg.config.public.base))
+        .pipe($.if(isProd, writeVersionFile()))
         .pipe($.browserSync.stream({match: '**/*.js'}));
 });
 
 /**
- * JS > Move scripts intended for inlining into 'templates/_inlinejs'
- * Runs once when you start the dev/prod process
+ * Scripts > Create additional javascript files.
+ * These scripts are for loading on specific pages.
  */
-gulp.task('creating inline js', () => {
-    return gulp.src(pkg.globs.inlineJs)
+gulp.task('scripts:singles', () => {
+    return gulp.src(pkg.config.scriptsSingles.source)
         .pipe($.plumber({errorHandler: handleError}))
-        .pipe($.if(['*.js', '!*.min.js'],
-            $.newer({dest: `${pkg.paths.built.js}_inlinejs`})
+        .pipe($.if(['*.js'],
+            $.newer({dest: pkg.config.scriptsSingles.destination})
         ))
-        .pipe($.if((['*.js', '!*.min.js'] && config.compress),
-            $.uglify({
-                compress: {
-                    unused: true,
-                    dead_code: true, // big one - strip code that will never execute
-                    warnings: false, // good for prod apps so users can't peek behind curtain
-                    drop_debugger: true,
-                    conditionals: true,
-                    evaluate: true,
-                    drop_console: true, // strips console statements
-                    sequences: true,
-                    booleans: true,
-                },
-                output: {
-                    comments: false
-                }
-            }),
-        ))
+        .pipe(browserify())
+        .pipe($.if(config.compress, compressScripts()))
+        .pipe($.rename({dirname: pkg.config.scriptsSingles.destination}))
         .pipe($.size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest(`${pkg.paths.templates}_inlinejs`));
+        .pipe($.if(isProd, $.rev()))
+        .pipe(gulp.dest(pkg.config.public.base))
+        .pipe($.if(isProd, writeVersionFile()));
 });
 
 /**
  * JS > Combines scripts into a single 'assets/js/plugins.js' package
  * Runs once at the beginning of the dev/prod process
  */
-gulp.task('combining global js', () => {
-    return gulp.src(pkg.globs.globalJs)
-        .pipe($.plumber({errorHandler: handleError}))
-        .pipe($.if((['*.js', '!*.min.js'] && config.compress),
-            $.uglify({
-                output: {
-                    comments: false
-                }
-            }),
-        ))
-        .pipe($.concat(pkg.vars.jsPluginsExportName))
+gulp.task('scripts:vendor', () => {
+    return gulp.src(pkg.config.scriptsVendor.source)
+    .pipe($.plumber({errorHandler: handleError}))
+        .pipe(browserify())
+        .pipe($.if(config.compress, compressScripts()))
+        .pipe($.concat(pkg.config.scriptsVendor.destination))
         .pipe($.size({gzip: true, showFiles: true}))
-        .pipe(gulp.dest(pkg.paths.built.js))
+        .pipe($.if(isProd, $.rev()))
+        .pipe(gulp.dest(pkg.config.public.base))
+        .pipe($.if(isProd, writeVersionFile()))
         .pipe($.browserSync.stream({match: '**/*.js'}));
 });
 
 /**
- * Images > Compresses any images/vectors added in 'src/img'
+ * Images > Compress images/vectors
  */
-gulp.task('compressing images', () => {
-    return gulp.src(`${pkg.paths.src.img}**/*.{png,jpg,jpeg,gif,svg}`)
-        .pipe($.newer({dest: pkg.paths.built.img}))
+gulp.task('images', () => {
+    return gulp.src(pkg.config.images.source)
+        .pipe($.newer({dest: `${pkg.config.public.base}/${pkg.config.images.destination}`}))
         .pipe($.imagemin([
             $.imagemin.gifsicle({interlaced: true}),
             $.imagemin.jpegtran({progressive: true}),
@@ -215,57 +234,65 @@ gulp.task('compressing images', () => {
                 ]
             })
         ]))
-        .pipe($.cached('image_min'))
-        .pipe(gulp.dest(pkg.paths.built.img));
+        .pipe($.cached('images'))
+        .pipe($.rename({dirname: pkg.config.images.destination}))
+        .pipe($.if(isProd, $.rev()))
+        .pipe(gulp.dest(pkg.config.public.base))
+        .pipe($.if(isProd, writeVersionFile()));
 });
 
 /**
  * SVG Icon > Combine a series of svgs into a single sprite in 'assets/icons.svg'
  */
-gulp.task('building svg icon', () => {
-    return gulp.src(
-        `${pkg.paths.src.icons}*.svg`,
-            {base: `${pkg.paths.src.icons}`}
-        )
+gulp.task('icons', () => {
+    return gulp.src(pkg.config.icons.source)
         .pipe($.plumber({errorHandler: handleError}))
         .pipe($.svgmin())
         .pipe($.rename({prefix: 'icon-'}))
         .pipe($.svgstore())
-        .pipe(gulp.dest(pkg.paths.built.assets))
+        .pipe($.rename(pkg.config.icons.destination))
+        .pipe($.if(isProd, $.rev()))
+        .pipe(gulp.dest(pkg.config.public.base))
+        .pipe($.if(isProd, writeVersionFile()))
         .pipe($.browserSync.stream({match: '**/*.svg'}));
 });
 
-const defaultTasks = [
-    'combining global js',
-    'creating inline js',
-    'compiling js',
-    'compiling css',
-    'building svg icon',
-    'compressing images',
-];
+
+// We run in sequence so build files can be deleted first and to avoid
+// overwriting the versions file if everything tries to save at the same time.
+gulp.task('build', callback => (
+    sequence(
+        'clean',
+        'styles',
+        'scripts:main',
+        'scripts:singles',
+        'scripts:vendor',
+        'images',
+        'icons',
+        callback
+    )
+));
 
 /**
- * This runs when you 'npm run dev' or 'gulp'
+ * This runs when running 'npm run start' or 'gulp'
  */
-gulp.task('default', defaultTasks, () => {
+gulp.task('default', ['build'], () => {
 
-    // Once the default tasks are run we start a series of dev file watchers
+    // Once the assets are built start watching files for changes
     $.browserSync.init(config.browserSync);
-    gulp.watch(`${pkg.paths.src.scss}**/*.scss`, ['compiling css']);
-    gulp.watch(`${pkg.paths.src.js}**/*.js`, ['compiling js']);
-    gulp.watch(`${pkg.paths.src.img}**/*`, ['compressing images']).on('change', $.browserSync.reload);
-    gulp.watch(`${pkg.paths.templates}*.twig`).on('change', $.browserSync.reload);
-    gulp.watch(`${pkg.paths.src.icons}*.svg`, ['building svg icon']).on('change', $.browserSync.reload);
+    gulp.watch(pkg.config.stylesMain.watch, ['styles']);
+    gulp.watch(pkg.config.scriptsMain.watch, ['scripts:main']);
+    gulp.watch(pkg.config.images.watch, ['images']).on('change', $.browserSync.reload);
+    gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload);
+    gulp.watch(pkg.config.icons.watch, ['icons']).on('change', $.browserSync.reload);
 });
-
 
 /**
  * Generate and move critical css to the templates folder
  */
 function createCriticalCSS(element, i, callback) {
     const criticalSrc = pkg.urls.critical + element.url;
-    const criticalDest = `${pkg.paths.templates}_critical/${element.template}_critical.css`;
-
+    const criticalDest = `${pkg.config.public.templates}_critical/${element.template}_critical.css`;
     let criticalWidth = 1200;
     let criticalHeight = 1200;
     if (element.template.indexOf('amp_') !== -1) {
@@ -277,9 +304,9 @@ function createCriticalCSS(element, i, callback) {
         dest: criticalDest,
         inline: false,
         ignore: [],
-        base: './',
+        base: pkg.config.public.base,
         css: [
-            pkg.paths.built.css + pkg.vars.cssExportName,
+            `${pkg.config.public.base}/${pkg.config.stylesMain.destination}`,
         ],
         minify: true,
         width: criticalWidth,
@@ -292,8 +319,8 @@ function createCriticalCSS(element, i, callback) {
 /**
  * Create critical css with a headless browser
  */
-gulp.task('critical-css', ['compiling css'], callback => {
-    doSynchronousLoop(pkg.globs.critical, createCriticalCSS, () => {
+gulp.task('critical-css', ['styles'], callback => {
+    doSynchronousLoop(pkg.config.critical, createCriticalCSS, () => {
         callback();
     });
 });
