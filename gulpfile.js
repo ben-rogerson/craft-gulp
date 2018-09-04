@@ -80,7 +80,8 @@ const browserify = () => (
     combine(
         $.bro({
             transform: [
-                [ 'babelify', { global: true } ]
+                [ 'babelify', { global: true } ],
+                'browserify-shim'
             ],
             paths: ['node_modules', pkg.config.public.scripts],
             error: error => handleError(error, false)
