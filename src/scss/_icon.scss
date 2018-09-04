@@ -4,14 +4,12 @@
 
 .icon {
 	display: inline-block;
-	width: 1em;
-	height: 1em;
 	fill: currentColor;
 	vertical-align: middle;
 
 	svg {
-		width: 100%;
-		height: auto;
+		width: 1em;
+        height: 1em;
 		display: block;
 	}
 
@@ -19,6 +17,6 @@
 	// stroke-width: 10px;
 	// For Edge - It doesn't support vector-effect="non-scaling-stroke" https://stackoverflow.com/questions/45101418/why-is-path-stroke-width-bigger-on-ms-edge-than-other-browsers
 	// @supports (-ms-ime-align:auto) {
-	//     stroke-width: 7.5px;
-	// }
+        //     stroke-width: 7.5px;
+        // }
 }
