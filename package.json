@@ -6,8 +6,7 @@
     "private": true,
     "scripts": {
         "start": "gulp",
-        "build": "NODE_ENV=production gulp",
-        "clean": "gulp clean"
+        "build": "NODE_ENV=production gulp build"
     },
     "config": {
         "devUrl": "https://craft-gulp.test",
