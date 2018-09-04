@@ -19,7 +19,7 @@ const $ = require('gulp-load-plugins')({
  * More options can be configured in `package.json`
  */
 const config = {
-    compress: false, // minify/compress css and js resources
+    compress: isProd, // minify/compress css and js resources
     browserSync: {
         proxy: pkg.config.devUrl,
         // files: [
