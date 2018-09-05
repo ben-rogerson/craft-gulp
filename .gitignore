@@ -3,11 +3,7 @@ node_modules
 vendor
 
 # Built folders + files
-public/assets/css
-public/assets/js
-public/assets/img
-public/assets/icons.svg
-public/assets/icons-*.svg
+public/build
 versions.json
 
 # Craft > Storage
@@ -16,7 +12,7 @@ storage/logs
 storage/runtime
 
 # Craft > Public folder items
-public/assets/volumes
+public/**/volumes
 public/cpresources
 public/imager
 

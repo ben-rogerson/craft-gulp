@@ -12,40 +12,40 @@
         "devUrl": "https://craft-gulp.test",
         "public": {
             "base": "public",
-            "assets": "public/assets",
-            "scripts": "public/assets/js/",
-            "styles": "public/assets/css/",
-            "templates": "templates/"
+            "build": "public/build",
+            "scripts": "public/build/js",
+            "styles": "public/build/css",
+            "templates": "templates"
         },
         "scriptsMain": {
             "watch": "src/js/**/*.js",
             "source": "src/js/app.js",
-            "destination": "assets/js/app.js"
+            "destination": "public/build/js/app.js"
         },
         "scriptsSingles": {
             "source": [],
-            "destination": "assets/js"
+            "destination": "public/build/js"
         },
         "scriptsVendor": {
             "source": [
                 "node_modules/jquery/dist/jquery.min.js"
             ],
-            "destination": "assets/js/vendor.js"
+            "destination": "public/build/js/vendor.js"
         },
         "stylesMain": {
             "watch": "src/scss/**/*.scss",
             "source": "src/scss/main.scss",
-            "destination": "assets/css/styles.css"
+            "destination": "public/build/css/styles.css"
         },
         "images": {
             "watch": "src/img/**/*.{png,jpg,jpeg,gif,svg}",
             "source": "src/img/**/*.{png,jpg,jpeg,gif,svg}",
-            "destination": "assets/img"
+            "destination": "public/build/img"
         },
         "icons": {
             "watch": "src/icons/**/*.svg",
             "source": "src/icons/*.svg",
-            "destination": "assets/icons.svg"
+            "destination": "public/build/icons.svg"
         },
         "templates": {
             "watch": "templates/*.twig"
@@ -60,7 +60,9 @@
                 "template": "blog"
             }
         ],
-        "versions": "versions.json"
+        "manifest": {
+            "destination": "public/build/revisions.json"
+        }
     },
     "browserify-shim": {
         "node_modules/jquery/dist/jquery.min.js": "$"

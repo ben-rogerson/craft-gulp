@@ -23,8 +23,8 @@ const config = {
     browserSync: {
         proxy: pkg.config.devUrl,
         files: [
-            `${pkg.config.public.scripts}/**/*.js`
-            `${pkg.config.public.templates}/**/*.twig`,
+            `${pkg.config.public.scripts}**/*.js`,
+            `${pkg.config.public.templates}**/*.twig`,
         ],
         ghostMode: { scroll: false },
         notify: false,
@@ -63,15 +63,18 @@ function handleError(err, emitEnd = true) {
 /**
  * Write a versions file to the build folder
  */
-const writeVersionFile = () => { return (
+const writeVersionFile = () => (
     combine.obj([
-        $.rev.manifest(pkg.config.versions, {
+        $.rename(path =>
+            path.dirname = path.dirname.replace(pkg.config.public.base, '')
+        ),
+        $.rev.manifest(pkg.config.manifest.destination, {
             merge: true,
-            base: pkg.config.public.assets,
+            base: pkg.config.public.build
         }),
-        gulp.dest(pkg.config.public.assets)
+        gulp.dest(pkg.config.public.build)
     ])
-)}
+);
 
 /**
  * Transform scripts with babel and browserify
@@ -80,14 +83,14 @@ const browserify = () => (
     combine(
         $.bro({
             transform: [
-                [ 'babelify', { global: true } ],
+                ['babelify', {global: true}],
                 'browserify-shim'
             ],
             paths: ['node_modules', pkg.config.public.scripts],
             error: error => handleError(error, false)
         })
     )
-)
+);
 
 /**
  * Compress css with uglify
@@ -111,15 +114,14 @@ const compressScripts = () => (
             }
         })
     )
-)
+);
 
 /**
  * Delete files from various directories
  */
 gulp.task('clean', () => (
     gulp.src([
-        pkg.config.versions, // Remove versions file
-        pkg.config.public.assets, // Remove whole built assets folder
+        pkg.config.public.build, // Remove whole built folder
     ], {read: false}).pipe($.clean())
 ));
 
@@ -129,12 +131,8 @@ gulp.task('clean', () => (
 gulp.task('styles', () => (
     gulp.src(pkg.config.stylesMain.source)
     .pipe($.plumber({errorHandler: handleError}))
-    .pipe($.sassVariables({
-        $isDev: isDev
-    }))
-    .pipe($.sass({
-        includePaths: ['node_modules']
-    }))
+    .pipe($.sassVariables({$isDev: isDev}))
+    .pipe($.sass({includePaths: ['node_modules']}))
     .pipe($.cached('styles'))
     .pipe($.autoprefixer({
         browsers: [
@@ -161,7 +159,7 @@ gulp.task('styles', () => (
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename(pkg.config.stylesMain.destination))
     .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest(pkg.config.public.base))
+    .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.css'}))
 ));
@@ -176,7 +174,7 @@ gulp.task('scripts:main', () => (
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename(pkg.config.scriptsMain.destination))
     .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest(pkg.config.public.base))
+    .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.js'}))
 ));
@@ -196,12 +194,12 @@ gulp.task('scripts:singles', () => (
     .pipe($.rename({dirname: pkg.config.scriptsSingles.destination}))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest(pkg.config.public.base))
+    .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
 ));
 
 /**
- * JS > Combines scripts into a single 'assets/js/plugins.js' package
+ * JS > Combines scripts into a single 'build/js/plugins.js' package
  * Runs once at the beginning of the dev/prod process
  */
 gulp.task('scripts:vendor', () => (
@@ -212,7 +210,7 @@ gulp.task('scripts:vendor', () => (
     .pipe($.concat(pkg.config.scriptsVendor.destination))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest(pkg.config.public.base))
+    .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.js'}))
 ));
@@ -237,12 +235,12 @@ gulp.task('images', () => (
     .pipe($.cached('images'))
     .pipe($.rename({dirname: pkg.config.images.destination}))
     .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest(pkg.config.public.base))
+    .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
 ));
 
 /**
- * SVG Icon > Combine a series of svgs into a single sprite in 'assets/icons.svg'
+ * SVG Icon > Combine a series of svgs into a single sprite in 'build/icons.svg'
  */
 gulp.task('icons', () => (
     gulp.src(pkg.config.icons.source)
@@ -252,7 +250,7 @@ gulp.task('icons', () => (
     .pipe($.svgstore())
     .pipe($.rename(pkg.config.icons.destination))
     .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest(pkg.config.public.base))
+    .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.svg'}))
 ));
