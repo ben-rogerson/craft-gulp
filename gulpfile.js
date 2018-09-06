@@ -277,7 +277,7 @@ gulp.task('default', ['build'], () => {
     gulp.watch(pkg.config.stylesMain.watch, ['styles']);
     gulp.watch(pkg.config.scriptsMain.watch, ['scripts:main']);
     gulp.watch(pkg.config.images.watch, ['images']).on('change', $.browserSync.reload);
-    gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload);
+    gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload).on('error', error => handleError(error));
     gulp.watch(pkg.config.icons.watch, ['icons']).on('change', $.browserSync.reload);
 });
 
