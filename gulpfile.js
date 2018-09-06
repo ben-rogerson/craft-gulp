@@ -7,6 +7,7 @@ const sequence = require('run-sequence');
 const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const isDev = environment === 'development';
 const isProd = environment === 'production';
+const os = require('os');
 
 // load all plugins in 'devDependencies' into the variable $
 const $ = require('gulp-load-plugins')({
@@ -33,7 +34,6 @@ const config = {
  * Play a wav file
  */
 const playSound = filePath => {
-    var os = require('os');
     if (!os.platform() === 'linux') {
       exec('aplay ' + filePath);
     } else {
