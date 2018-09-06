@@ -126,6 +126,7 @@ gulp.task('clean', () => (
  */
 gulp.task('styles', () => (
     gulp.src(pkg.config.stylesMain.source)
+    .pipe($.sourcemaps.init())
     .pipe($.plumber({errorHandler: handleError}))
     .pipe($.sassVariables({$isDev: isDev}))
     .pipe($.sass({includePaths: ['node_modules']}))
@@ -149,13 +150,14 @@ gulp.task('styles', () => (
             discardDuplicates: true,
             discardEmpty: true,
             minifyFontValues: false,
-            minifySelectors: true
+            minifySelectors: true,
         }),
     ))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename(pkg.config.stylesMain.destination))
     .pipe($.if(isProd, $.rev()))
     .pipe(gulp.dest('.'))
+    .pipe($.sourcemaps.write(pkg.config.stylesMain.destination))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.css'}))
 ));
