@@ -14,8 +14,7 @@
             "base": "public",
             "build": "public/build",
             "scripts": "public/build/js",
-            "styles": "public/build/css",
-            "templates": "templates"
+            "styles": "public/build/css"
         },
         "scriptsMain": {
             "watch": "src/js/**/*.js",
@@ -48,7 +47,8 @@
             "destination": "public/build/icons.svg"
         },
         "templates": {
-            "watch": "templates/*.twig"
+            "watch": "templates/**/*.twig",
+            "source": "templates"
         },
         "critical": [
             {
