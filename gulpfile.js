@@ -2,7 +2,7 @@ const pkg = require('./package.json');
 const gulp = require('gulp');
 const notifier = require('node-notifier');
 const exec = require('child_process').exec;
-const combine = require('stream-combiner2');
+const stream = require('stream-combiner2');
 const sequence = require('run-sequence');
 const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const isDev = environment === 'development';
@@ -60,7 +60,7 @@ function handleError(err, emitEnd = true) {
  * Write a versions file to the build folder
  */
 const writeVersionFile = () => (
-    combine.obj([
+    stream.obj([
         $.rename(path =>
             path.dirname = path.dirname.replace(pkg.config.public.base, '')
         ),
@@ -76,7 +76,7 @@ const writeVersionFile = () => (
  * Transform scripts with babel and browserify
  */
 const browserify = () => (
-    combine(
+    stream(
         $.bro({
             transform: [
                 ['babelify', {global: true}],
@@ -92,7 +92,7 @@ const browserify = () => (
  * Compress css with uglify
  */
 const compressScripts = () => (
-    combine(
+    stream(
         $.uglify({
             compress: {
                 unused: true,
