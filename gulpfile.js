@@ -22,10 +22,6 @@ const config = {
     compress: isProd, // minify/compress css and js resources
     browserSync: {
         proxy: pkg.config.devUrl,
-        files: [
-            `${pkg.config.public.scripts}**/*.js`,
-            `${pkg.config.public.templates}**/*.twig`,
-        ],
         ghostMode: { scroll: false },
         notify: false,
         open: false,
