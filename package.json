@@ -21,10 +21,10 @@
             "source": "src/js/*.js",
             "destination": "public/build/js"
         },
-        "stylesMain": {
+        "styles": {
             "watch": "src/scss/**/*.scss",
-            "source": "src/scss/main.scss",
-            "destination": "public/build/css/styles.css"
+            "source": "src/scss/*.scss",
+            "destination": "public/build/css"
         },
         "images": {
             "watch": "src/img/**/*.{png,jpg,jpeg,gif,svg}",

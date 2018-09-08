@@ -127,7 +127,7 @@ gulp.task('clean', () => (
  * Handle project styles
  */
 gulp.task('styles', () => (
-    gulp.src(pkg.config.stylesMain.source)
+    gulp.src(pkg.config.styles.source)
     .pipe($.cached('styles'))
     .pipe($.plumber({errorHandler: handleError}))
     .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
@@ -156,7 +156,7 @@ gulp.task('styles', () => (
         }),
     ))
     .pipe($.size({gzip: true, showFiles: true}))
-    .pipe($.rename(pkg.config.stylesMain.destination))
+    .pipe($.rename({dirname: pkg.config.styles.destination}))
     .pipe($.if(isProd, $.rev()))
     .pipe($.if(isDev, $.sourcemaps.write('.')))
     .pipe(gulp.dest('.'))
@@ -243,7 +243,7 @@ gulp.task('default', ['build'], () => {
 
     // Once the assets are built start watching files for changes
     $.browserSync.init(config.browserSync);
-    gulp.watch(pkg.config.stylesMain.watch, ['styles']);
+    gulp.watch(pkg.config.styles.watch, ['styles']);
     gulp.watch(pkg.config.scripts.watch, ['scripts']);
     gulp.watch(pkg.config.images.watch, ['images']).on('change', $.browserSync.reload);
     gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload).on('error', error => handleError(error));
@@ -269,7 +269,7 @@ function createCriticalCSS(element, i, callback) {
         ignore: [],
         base: pkg.config.public.base,
         css: [
-            `${pkg.config.public.base}/${pkg.config.stylesMain.destination}`,
+            `${pkg.config.public.base}/${pkg.config.styles.destination}`,
         ],
         minify: true,
         width: criticalWidth,
