@@ -8,6 +8,7 @@ const environment = process.env.NODE_ENV === 'production' ? 'production' : 'deve
 const isDev = environment === 'development';
 const isProd = environment === 'production';
 const os = require('os');
+const buffer = require('vinyl-buffer');
 
 // load all plugins in 'devDependencies' into the variable $
 const $ = require('gulp-load-plugins')({
@@ -82,6 +83,7 @@ const browserify = () => (
                 ['babelify', {global: true}],
                 ['browserify-shim', {global: true}],
             ],
+            debug: isDev,
             paths: ['node_modules', pkg.config.public.scripts],
             error: error => handleError(error, false)
         })
@@ -124,13 +126,13 @@ gulp.task('clean', () => (
 /**
  * Handle project styles
  */
-gulp.task('styles', () => {
-    return gulp.src(pkg.config.stylesMain.source, {base: 'public'})
-    .pipe($.if(isDev, $.sourcemaps.init()))
+gulp.task('styles', () => (
+    gulp.src(pkg.config.stylesMain.source)
+    .pipe($.cached('styles'))
     .pipe($.plumber({errorHandler: handleError}))
+    .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
     .pipe($.sassVariables({$isDev: isDev}))
     .pipe($.sass({includePaths: ['node_modules']}))
-    .pipe($.cached('styles'))
     .pipe($.autoprefixer({
         browsers: [
             '> 0.5% in AU',
@@ -168,10 +170,13 @@ gulp.task('styles', () => {
 gulp.task('scripts', () => (
     gulp.src(pkg.config.scripts.source)
     .pipe(browserify())
+    .pipe(buffer())
+    .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
     .pipe($.if(config.compress, compressScripts()))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename({dirname: pkg.config.scripts.destination}))
     .pipe($.if(isProd, $.rev()))
+    .pipe($.if(isDev, $.sourcemaps.write('.')))
     .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.js'}))
