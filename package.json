@@ -36,6 +36,11 @@
             "source": "src/icons/*.svg",
             "destination": "public/build/icons.svg"
         },
+        "favicons": {
+            "watch": "src/favicons/**/*",
+            "source": "src/favicons/**/*",
+            "destination": "public/build/favicons"
+        },
         "templates": {
             "watch": "templates/**/*.twig",
             "source": "templates"

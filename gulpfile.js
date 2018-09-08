@@ -17,21 +17,6 @@ const $ = require('gulp-load-plugins')({
 });
 
 /**
- * Define the config for your project
- * More options can be configured in `package.json`
- */
-const config = {
-    compress: isProd, // minify/compress css and js resources
-    browserSync: {
-        proxy: pkg.config.devUrl,
-        ghostMode: { scroll: false },
-        notify: false,
-        open: false,
-        https: true,
-    },
-}
-
-/**
  * Play a wav file
  */
 const playSound = filePath => {
@@ -115,16 +100,16 @@ const compressScripts = () => (
 );
 
 /**
- * Delete files from various directories
+ * Delete build files
  */
 gulp.task('clean', () => (
     gulp.src([
-        pkg.config.public.build, // Remove whole built folder
+        pkg.config.public.build, // Remove whole build folder
     ], {read: false}).pipe($.clean())
 ));
 
 /**
- * Handle project styles
+ * Handle stylesheets
  */
 gulp.task('styles', () => (
     gulp.src(pkg.config.styles.source)
@@ -142,7 +127,7 @@ gulp.task('styles', () => (
         ]
     }))
     .pipe(
-        $.if(config.compress,
+        $.if(isProd,
         $.cssnano({
             safe: true,
             autoprefixer: false,
@@ -165,14 +150,14 @@ gulp.task('styles', () => (
 ));
 
 /**
- * Main script task
+ * Handle javascript
  */
 gulp.task('scripts', () => (
     gulp.src(pkg.config.scripts.source)
     .pipe(browserify())
     .pipe(buffer())
     .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
-    .pipe($.if(config.compress, compressScripts()))
+    .pipe($.if(isProd, compressScripts()))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename({dirname: pkg.config.scripts.destination}))
     .pipe($.if(isProd, $.rev()))
@@ -183,7 +168,7 @@ gulp.task('scripts', () => (
 ));
 
 /**
- * Images > Compress images/vectors
+ * Handle image/vector compression
  */
 gulp.task('images', () => (
     gulp.src(pkg.config.images.source)
@@ -207,7 +192,7 @@ gulp.task('images', () => (
 ));
 
 /**
- * SVG Icon > Combine a series of svgs into a single sprite in 'build/icons.svg'
+ * Handle SVG icon sprite
  */
 gulp.task('icons', () => (
     gulp.src(pkg.config.icons.source)
@@ -222,6 +207,17 @@ gulp.task('icons', () => (
     .pipe($.browserSync.stream({match: '**/*.svg'}))
 ));
 
+/**
+ * Handle favicons
+ */
+gulp.task('favicons', () => (
+    gulp.src(pkg.config.favicons.source)
+    .pipe($.size({gzip: true, showFiles: true}))
+    .pipe($.rename({dirname: pkg.config.favicons.destination}))
+    .pipe($.if(isProd, $.rev()))
+    .pipe(gulp.dest('.'))
+    .pipe($.if(isProd, writeVersionFile()))
+));
 
 // We run in sequence so build files can be deleted first and to avoid
 // overwriting the versions file if everything tries to save at the same time.
@@ -232,6 +228,7 @@ gulp.task('build', callback => (
         'scripts',
         'images',
         'icons',
+        'favicons',
         callback
     )
 ));
@@ -242,12 +239,19 @@ gulp.task('build', callback => (
 gulp.task('default', ['build'], () => {
 
     // Once the assets are built start watching files for changes
-    $.browserSync.init(config.browserSync);
+    $.browserSync.init({
+        proxy: pkg.config.devUrl,
+        ghostMode: { scroll: false },
+        notify: false,
+        open: false,
+        https: true,
+    });
     gulp.watch(pkg.config.styles.watch, ['styles']);
     gulp.watch(pkg.config.scripts.watch, ['scripts']);
     gulp.watch(pkg.config.images.watch, ['images']).on('change', $.browserSync.reload);
     gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload).on('error', error => handleError(error));
     gulp.watch(pkg.config.icons.watch, ['icons']).on('change', $.browserSync.reload);
+    gulp.watch(pkg.config.favicons.watch, ['favicons']).on('change', $.browserSync.reload);
 });
 
 /**
