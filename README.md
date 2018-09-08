@@ -1,6 +1,6 @@
 # craft-gulp
 
-A boilerplate to help you get you started in Craft CMS 3.
+An agency-battletested production-ready boilerplate to help you get you started in Craft CMS 3.
 
 
 ### Getting started
@@ -20,12 +20,31 @@ and run the `craft setup` command that՚s mentioned at the end
 6. Code like a pro.
 
 
-## What՚s Included
+## Boilerplate Features
 
-- SCSS > CSS
-- JS ES6+ > ES5
-- SVG sprite compiling
-- Image compression
+### Development
+
+npm start
+
+- Automatic updates with Browsersync
+- Cachebusting with Querystring
+- SCSS
+    - Breakpoint Display Helper
+    - Autoprefixer
+    - Sourcemaps
+- Javascript
+    - 1st Class ES6+ Transpiling
+    - Modules (import/export)
+    - Globals (browserify-shim)
+    - Sourcemaps
+- Images
+    - Compression for GIF/JPG/PNG/SVG
+- SVG Sprite Conversion
+- Favicons
 - Critical CSS
-- Build scripts
-- Asset revving
+
+## Production
+
+npm run build
+
+- Cachebusting with Manifest
