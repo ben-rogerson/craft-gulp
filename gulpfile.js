@@ -124,9 +124,9 @@ gulp.task('clean', () => (
 /**
  * Handle project styles
  */
-gulp.task('styles', () => (
-    gulp.src(pkg.config.stylesMain.source)
-    .pipe($.sourcemaps.init())
+gulp.task('styles', () => {
+    return gulp.src(pkg.config.stylesMain.source, {base: 'public'})
+    .pipe($.if(isDev, $.sourcemaps.init()))
     .pipe($.plumber({errorHandler: handleError}))
     .pipe($.sassVariables({$isDev: isDev}))
     .pipe($.sass({includePaths: ['node_modules']}))
@@ -156,8 +156,8 @@ gulp.task('styles', () => (
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename(pkg.config.stylesMain.destination))
     .pipe($.if(isProd, $.rev()))
+    .pipe($.if(isDev, $.sourcemaps.write('.')))
     .pipe(gulp.dest('.'))
-    .pipe($.sourcemaps.write(pkg.config.stylesMain.destination))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.css'}))
 ));
