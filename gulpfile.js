@@ -2,11 +2,12 @@ const pkg = require('./package.json');
 const gulp = require('gulp');
 const notifier = require('node-notifier');
 const exec = require('child_process').exec;
-const combine = require('stream-combiner2');
+const stream = require('stream-combiner2');
 const sequence = require('run-sequence');
 const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const isDev = environment === 'development';
 const isProd = environment === 'production';
+const os = require('os');
 
 // load all plugins in 'devDependencies' into the variable $
 const $ = require('gulp-load-plugins')({
@@ -33,7 +34,6 @@ const config = {
  * Play a wav file
  */
 const playSound = filePath => {
-    var os = require('os');
     if (!os.platform() === 'linux') {
       exec('aplay ' + filePath);
     } else {
@@ -60,7 +60,7 @@ function handleError(err, emitEnd = true) {
  * Write a versions file to the build folder
  */
 const writeVersionFile = () => (
-    combine.obj([
+    stream.obj([
         $.rename(path =>
             path.dirname = path.dirname.replace(pkg.config.public.base, '')
         ),
@@ -76,11 +76,11 @@ const writeVersionFile = () => (
  * Transform scripts with babel and browserify
  */
 const browserify = () => (
-    combine(
+    stream(
         $.bro({
             transform: [
                 ['babelify', {global: true}],
-                'browserify-shim'
+                ['browserify-shim', {global: true}],
             ],
             paths: ['node_modules', pkg.config.public.scripts],
             error: error => handleError(error, false)
@@ -92,7 +92,7 @@ const browserify = () => (
  * Compress css with uglify
  */
 const compressScripts = () => (
-    combine(
+    stream(
         $.uglify({
             compress: {
                 unused: true,
@@ -165,48 +165,12 @@ gulp.task('styles', () => {
 /**
  * Main script task
  */
-gulp.task('scripts:main', () => (
-    gulp.src(pkg.config.scriptsMain.source)
+gulp.task('scripts', () => (
+    gulp.src(pkg.config.scripts.source)
     .pipe(browserify())
     .pipe($.if(config.compress, compressScripts()))
     .pipe($.size({gzip: true, showFiles: true}))
-    .pipe($.rename(pkg.config.scriptsMain.destination))
-    .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest('.'))
-    .pipe($.if(isProd, writeVersionFile()))
-    .pipe($.browserSync.stream({match: '**/*.js'}))
-));
-
-/**
- * Scripts > Create additional javascript files.
- * These scripts are for loading on specific pages.
- */
-gulp.task('scripts:singles', () => (
-    gulp.src(pkg.config.scriptsSingles.source)
-    .pipe($.plumber({errorHandler: handleError}))
-    .pipe($.if(['*.js'],
-        $.newer({dest: pkg.config.scriptsSingles.destination})
-    ))
-    .pipe(browserify())
-    .pipe($.if(config.compress, compressScripts()))
-    .pipe($.rename({dirname: pkg.config.scriptsSingles.destination}))
-    .pipe($.size({gzip: true, showFiles: true}))
-    .pipe($.if(isProd, $.rev()))
-    .pipe(gulp.dest('.'))
-    .pipe($.if(isProd, writeVersionFile()))
-));
-
-/**
- * JS > Combines scripts into a single 'build/js/plugins.js' package
- * Runs once at the beginning of the dev/prod process
- */
-gulp.task('scripts:vendor', () => (
-    gulp.src(pkg.config.scriptsVendor.source)
-    .pipe($.plumber({errorHandler: handleError}))
-    .pipe(browserify())
-    .pipe($.if(config.compress, compressScripts()))
-    .pipe($.concat(pkg.config.scriptsVendor.destination))
-    .pipe($.size({gzip: true, showFiles: true}))
+    .pipe($.rename({dirname: pkg.config.scripts.destination}))
     .pipe($.if(isProd, $.rev()))
     .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
@@ -260,9 +224,7 @@ gulp.task('build', callback => (
     sequence(
         'clean',
         'styles',
-        'scripts:main',
-        'scripts:singles',
-        'scripts:vendor',
+        'scripts',
         'images',
         'icons',
         callback
@@ -277,7 +239,7 @@ gulp.task('default', ['build'], () => {
     // Once the assets are built start watching files for changes
     $.browserSync.init(config.browserSync);
     gulp.watch(pkg.config.stylesMain.watch, ['styles']);
-    gulp.watch(pkg.config.scriptsMain.watch, ['scripts:main']);
+    gulp.watch(pkg.config.scripts.watch, ['scripts']);
     gulp.watch(pkg.config.images.watch, ['images']).on('change', $.browserSync.reload);
     gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload).on('error', error => handleError(error));
     gulp.watch(pkg.config.icons.watch, ['icons']).on('change', $.browserSync.reload);

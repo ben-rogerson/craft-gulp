@@ -16,20 +16,10 @@
             "scripts": "public/build/js",
             "styles": "public/build/css"
         },
-        "scriptsMain": {
+        "scripts": {
             "watch": "src/js/**/*.js",
-            "source": "src/js/app.js",
-            "destination": "public/build/js/app.js"
-        },
-        "scriptsSingles": {
-            "source": [],
+            "source": "src/js/*.js",
             "destination": "public/build/js"
-        },
-        "scriptsVendor": {
-            "source": [
-                "node_modules/jquery/dist/jquery.min.js"
-            ],
-            "destination": "public/build/js/vendor.js"
         },
         "stylesMain": {
             "watch": "src/scss/**/*.scss",
@@ -65,7 +55,7 @@
         }
     },
     "browserify-shim": {
-        "node_modules/jquery/dist/jquery.min.js": "$"
+        "node_modules/jquery/dist/jquery.js": "$"
     },
     "dependencies": {
         "jquery": "^3.3.1",
