@@ -15,9 +15,11 @@ and run the `craft setup` command that՚s mentioned at the end
 3. Open your project directory and install the packages<br>
 `cd PROJECT_NAME && npm i`
 4. Add a link with Valet or Homestead to the `public` folder [ `valet link PROJECT_NAME` ]
-4. Open `PROJECT_NAME/package.json` and update the dev url in `paths.urls.dev`
-5. Start your dev server with `npm run dev`
+4. Open `PROJECT_NAME/package.json` and update the dev url in `config.devUrl`
+5. Start your dev server with `npm start`
 6. Code like a pro.
+
+Also remember to enable the installed plugins within Craft.
 
 
 ## Boilerplate Features
@@ -33,8 +35,8 @@ npm start
     - Autoprefixer
     - Sourcemaps
 - Javascript
-    - 1st Class ES6+ Transpiling
-    - Modules (import/export)
+    - First class ES6+ Transpiling
+    - JS Modules (import/export)
     - Globals (browserify-shim)
     - Sourcemaps
 - Images
@@ -47,4 +49,5 @@ npm start
 
 npm run build
 
+- All of the above but no Browsersync or Sourcemaps
 - Cachebusting with Manifest
