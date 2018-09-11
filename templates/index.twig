@@ -3,7 +3,29 @@
 
 {% block content %}
 
-    <div class="helloicon">{{ utils.icon('crafty') }}</div>
-    <div class="hello">Go get Crafty!</div>
+    <div class="hello-everybody-icon">{{ utils.icon('crafty') }}</div>
+    <div class="hello-everybody">Go get Crafty!</div>
+    <style>
+    body {
+        color: #FFF;
+        background: #dd3e28;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        font-size: 3rem;
+        padding: 2rem;
+    }
+    .hello-everybody {
+        text-align: center;
+        font-family: helvetica, arial;
+        font-weight: bold;
+        margin-top: .5em;
+    }
+    .hello-everybody-icon {
+        font-size: 5rem;
+        color: #ffe400;
+    }
+    </style>
 
 {% endblock %}
