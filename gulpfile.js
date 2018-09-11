@@ -113,7 +113,7 @@ gulp.task('clean', () => (
 /**
  * Handle stylesheets
  */
-gulp.task('styles', () => (
+gulp.task('styles', () => {
     const plugins = [
         autoprefixer({
             browsers: [
@@ -136,8 +136,8 @@ gulp.task('styles', () => (
             minifyFontValues: false,
             minifySelectors: true
         })
-    )
-    gulp.src(pkg.config.styles.source)
+    );
+    return gulp.src(pkg.config.styles.source)
     .pipe($.plumber({errorHandler: handleError}))
     .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
     .pipe($.sassVariables({$isDev: isDev}))
@@ -151,7 +151,7 @@ gulp.task('styles', () => (
     .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.css'}))
-));
+});
 
 /**
  * Handle javascript
