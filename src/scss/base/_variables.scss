@@ -1,7 +1,6 @@
 // Breakpoints
 $base:   0px;
 $small:  480px;
-$nexus:  600px;
 $medium: 768px;
 $ipad:   1024px;
 $large:  1280px;
@@ -13,7 +12,6 @@ $max:    1920px;
 $breakpoints: (
 base:   $base,
 small:  $small,
-nexus:  $nexus,
 medium: $medium,
 ipad:   $ipad,
 large:  $large,
