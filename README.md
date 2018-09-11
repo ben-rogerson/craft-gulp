@@ -11,15 +11,16 @@ This process will get you setup with a new project locally.
 2. In your terminal, `cd/TO/YOUR/PROJECTS/DIRECTORY` and create a new project
 with this boilerplate:<br>
 `create-project ben-rogerson/craft-gulp --stability dev PROJECT_NAME`<br>
-and run the `craft setup` command that՚s mentioned at the end
+and run the `./craft setup` command that՚s mentioned at the end
 3. Open your project directory and install the packages<br>
 `cd PROJECT_NAME && npm i`
-4. Add a link with Valet or Homestead to the `public` folder [ `valet link PROJECT_NAME` ]
-4. Open `PROJECT_NAME/package.json` and update the dev url in `config.devUrl`
-5. Start your dev server with `npm start`
-6. Code like a pro.
+4. Activate the asset-rev plugin `./craft install/plugin assetrev`
+5. Add a link with Valet or Homestead to the `public` folder [ `valet link PROJECT_NAME` ]
+6. Open `PROJECT_NAME/package.json` and update the dev url in `config.devUrl`
+7. Start your dev server with `npm start`
+8. Code like a pro.
 
-Also remember to enable the installed plugins within Craft.
+Be sure to enable the rest of the installed plugins within Craft.
 
 
 ## Boilerplate Features
