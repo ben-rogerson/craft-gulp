@@ -4,6 +4,8 @@ const notifier = require('node-notifier');
 const exec = require('child_process').exec;
 const stream = require('stream-combiner2');
 const sequence = require('run-sequence');
+const autoprefixer = require('autoprefixer');
+const cssnano = require('cssnano');
 const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 const isDev = environment === 'development';
 const isProd = environment === 'production';
@@ -112,23 +114,18 @@ gulp.task('clean', () => (
  * Handle stylesheets
  */
 gulp.task('styles', () => (
-    gulp.src(pkg.config.styles.source)
-    .pipe($.cached('styles'))
-    .pipe($.plumber({errorHandler: handleError}))
-    .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
-    .pipe($.sassVariables({$isDev: isDev}))
-    .pipe($.sass({includePaths: ['node_modules']}))
-    .pipe($.autoprefixer({
-        browsers: [
-            '> 0.5% in AU',
-            'last 3 years',
-            'iOS >= 7',
-            'ie >= 10'
-        ]
-    }))
-    .pipe(
-        $.if(isProd,
-        $.cssnano({
+    const plugins = [
+        autoprefixer({
+            browsers: [
+                '> 0.5% in AU',
+                'last 3 years',
+                'iOS >= 7',
+                'ie >= 10'
+            ]
+        })
+    ];
+    if (isProd) plugins.push(
+        cssnano({
             safe: true,
             autoprefixer: false,
             discardComments: {
@@ -137,9 +134,16 @@ gulp.task('styles', () => (
             discardDuplicates: true,
             discardEmpty: true,
             minifyFontValues: false,
-            minifySelectors: true,
-        }),
-    ))
+            minifySelectors: true
+        })
+    )
+    gulp.src(pkg.config.styles.source)
+    .pipe($.plumber({errorHandler: handleError}))
+    .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
+    .pipe($.sassVariables({$isDev: isDev}))
+    .pipe($.sass({includePaths: ['node_modules']}))
+    .pipe($.cached('styles'))
+    .pipe($.postcss(plugins))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename({dirname: pkg.config.styles.destination}))
     .pipe($.if(isProd, $.rev()))
