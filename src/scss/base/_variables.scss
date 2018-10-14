@@ -1,21 +1,25 @@
-// Breakpoints
-$base:   0px;
-$small:  480px;
-$medium: 768px;
-$ipad:   1024px;
-$large:  1280px;
-$xlarge: 1440px;
-$huge:   1681px;
-$max:    1920px;
+// ==========================================================================
+// Variables
+// ==========================================================================
 
-// Define breakpoints for include media
+// Breakpoints
+$base:      0px;
+$small:     480px;
+$medium:    768px;
+$ipad:      1024px;
+$large:     1280px;
+$xlarge:    1440px;
+$xxlarge:   1681px;
+$xxxxlarge: 1920px;
+
+// Include-media config
 $breakpoints: (
-base:   $base,
-small:  $small,
-medium: $medium,
-ipad:   $ipad,
-large:  $large,
-xlarge: $xlarge,
-huge:   $huge,
-max:    $max,
+base:      $base,
+small:     $small,
+medium:    $medium,
+ipad:      $ipad,
+large:     $large,
+xlarge:    $xlarge,
+xxlarge:   $xxlarge,
+xxxxlarge: $xxxxlarge
 );

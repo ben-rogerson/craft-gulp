@@ -1,10 +1,13 @@
 import './modules/icons';
+// import './modules/';
 
-// Examples
 
-import sayGreeting from './modules/greeting';
-import { isDev } from './utils';
-
+// Example: Import and call an exported function
+import sayGreeting from './modules/example-module';
 sayGreeting();
 
-console.log(`${ isDev ? `🚧` : `💼` } This app is running in ${ isDev ? `dev` : `production` } mode`);
+// Example: Import the environment variable 'isDev'
+import { isDev } from './utils';
+console.log(
+    `${ isDev ? `🚧` : `💼` } This app is running in ${ isDev ? `dev` : `production` } mode`
+);

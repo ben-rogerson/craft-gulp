@@ -11,28 +11,29 @@
  * {{ utils.icon('iconFilename', 'iconClass') }}
  */
 
-const bodyElement = document.querySelector('body');
+const bodyElement   = document.querySelector('body');
 const bodyAttribute = 'data-icons';
-const iconsPath = bodyElement.getAttribute(bodyAttribute);
+const iconsPath     = bodyElement.getAttribute(bodyAttribute);
+
 const prepend = (what, where) => where.insertBefore(what, where.firstChild);
 
 const inlineFile = iconsPath => {
-    if (!iconsPath) return;
+  if (!iconsPath) return;
 
-    const request = new XMLHttpRequest();
-    request.open('GET', iconsPath, true);
+  const request = new XMLHttpRequest();
+  request.open('GET', iconsPath, true);
 
-    request.onload = () => {
-        if (request.status >= 200 && request.status < 400) {
-            const svgIcon = request.responseXML.documentElement;
-            svgIcon.setAttribute('display', 'none');
-            svgIcon.setAttribute('aria-hidden', true);
-            prepend(svgIcon, bodyElement);
-            bodyElement.removeAttribute(bodyAttribute);
-        }
-    };
+  request.onload = () => {
+    if (request.status >= 200 && request.status < 400) {
+      const svgIcon = request.responseXML.documentElement;
+      svgIcon.setAttribute('display', 'none');
+      svgIcon.setAttribute('aria-hidden', true);
+      prepend(svgIcon, bodyElement);
+      bodyElement.removeAttribute(bodyAttribute);
+    }
+  };
 
-    request.send();
-}
+  request.send();
+};
 
 inlineFile(iconsPath);

@@ -1,17 +1,10 @@
 // =============================================================================
 // Main
 // =============================================================================
+
 @import
 'base/normalize',
 'base/variables',
+'base/global',
 'base/devtools',
 'icon';
-
-body {
-    box-sizing: border-box;
-    min-height: 100vh;
-}
-
-*, *:before, *:after {
-    box-sizing: inherit;
-}

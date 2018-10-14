@@ -1,14 +1,13 @@
 // ==========================================================================
-// Icon
+// Global styles
+// Selectors with wide coverage
 // ==========================================================================
 
-.icon {
-    display: inline-block;
-    vertical-align: middle;
+body {
+    box-sizing: border-box;
+    min-height: 100vh;
+}
 
-    svg {
-        width: 1em;
-        height: 1em;
-        display: block;
-    }
+*, *:before, *:after {
+    box-sizing: inherit;
 }

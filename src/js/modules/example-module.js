@@ -5,6 +5,7 @@
  * 'sayGreeting' available via import.
  */
 
-const sayGreeting = () => console.log(`👋 Ola from 'src/js/modules/module.js'`);
+const sayGreeting = () =>
+    console.log(`👋 Ola from 'src/js/modules/example-module.js'`);
 
 export default sayGreeting;
