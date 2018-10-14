@@ -61,47 +61,6 @@ const writeVersionFile = () => (
 );
 
 /**
- * Transform scripts with babel and browserify
- */
-const browserify = () => (
-    stream(
-        $.bro({
-            transform: [
-                ['babelify', {global: true}],
-                ['browserify-shim', {global: true}],
-            ],
-            debug: isDev,
-            paths: ['node_modules', pkg.config.public.scripts],
-            error: error => handleError(error, false)
-        })
-    )
-);
-
-/**
- * Compress css with uglify
- */
-const compressScripts = () => (
-    stream(
-        $.uglify({
-            compress: {
-                unused: true,
-                dead_code: true, // big one - strip code that will never execute
-                warnings: false, // good for prod apps so users can't peek behind curtain
-                drop_debugger: true,
-                conditionals: true,
-                evaluate: true,
-                drop_console: true, // strips console statements
-                sequences: true,
-                booleans: true,
-            },
-            output: {
-                comments: false
-            }
-        })
-    )
-);
-
-/**
  * Delete build files
  */
 gulp.task('clean', () => (
@@ -113,7 +72,7 @@ gulp.task('clean', () => (
 /**
  * Handle stylesheets
  */
-gulp.task('styles', () => {
+gulp.task('styles:base', () => {
     const plugins = [
         autoprefixer({
             browsers: [
@@ -154,14 +113,45 @@ gulp.task('styles', () => {
 });
 
 /**
+ * Handle revisioned assets in built stylesheets
+ */
+gulp.task('styles:revision', () => (
+    gulp.src(`${pkg.config.styles.destination}/*.css`)
+    .pipe($.revRewrite({
+        manifest: gulp.src(pkg.config.manifest.destination),
+        prefix: '/',
+    }))
+    .pipe(gulp.dest(pkg.config.styles.destination))
+));
+
+gulp.task('styles', callback => (
+    sequence(
+        'styles:base',
+        'styles:revision',
+        callback
+    )
+));
+
+/**
  * Handle javascript
  */
-gulp.task('scripts', () => (
+gulp.task('scripts:main', () => (
     gulp.src(pkg.config.scripts.source)
-    .pipe(browserify())
+    .pipe((
+        stream(
+            $.bro({
+                transform: [
+                    ['browserify-shim', {global: true}],
+                    ['babelify', {global: true}],
+                ],
+                debug: isDev,
+                paths: ['node_modules', pkg.config.scripts.destination],
+                error: error => handleError(error, false)
+            })
+        )
+    ))
     .pipe(buffer())
     .pipe($.if(isDev, $.sourcemaps.init({loadMaps: true})))
-    .pipe($.if(isProd, compressScripts()))
     .pipe($.size({gzip: true, showFiles: true}))
     .pipe($.rename({dirname: pkg.config.scripts.destination}))
     .pipe($.if(isProd, $.rev()))
@@ -169,6 +159,42 @@ gulp.task('scripts', () => (
     .pipe(gulp.dest('.'))
     .pipe($.if(isProd, writeVersionFile()))
     .pipe($.browserSync.stream({match: '**/*.js'}))
+));
+
+gulp.task('scripts:uglify', () => (
+    gulp.src(`${pkg.config.scripts.destination}/*.js`)
+    .pipe($.if(isProd, $.uglify({
+        compress: {
+            unused: true,
+            sequences: true,
+            dead_code: true,
+            booleans: true,
+            drop_debugger: true,
+            conditionals: true,
+            if_return: false,
+            evaluate: true,
+            drop_console: false,
+            keep_fnames: true,
+            warnings: false
+        },
+        mangle: true,
+        output: {
+            comments: false
+        },
+        nameCache: null,
+        toplevel: false,
+        ie8: false,
+        warnings: false,
+    })))
+    .pipe(gulp.dest(`${pkg.config.scripts.destination}`))
+));
+
+gulp.task('scripts', callback => (
+    sequence(
+        'scripts:main',
+        'scripts:uglify',
+        callback
+    )
 ));
 
 /**
@@ -183,7 +209,7 @@ gulp.task('images', () => (
         $.imagemin.optipng({optimizationLevel: 7}),
         $.imagemin.svgo({
             plugins: [
-                {removeViewBox: true},
+                {removeViewBox: false},
                 {cleanupIDs: false}
             ]
         })
@@ -201,7 +227,13 @@ gulp.task('images', () => (
 gulp.task('icons', () => (
     gulp.src(pkg.config.icons.source)
     .pipe($.plumber({errorHandler: handleError}))
-    .pipe($.svgmin())
+    .pipe($.svgmin({
+        plugins: [
+            { convertColors: { currentColor: true } },
+            { removeDimensions: false },
+            { removeViewBox: false }
+        ]
+    }))
     .pipe($.rename({prefix: 'icon-'}))
     .pipe($.svgstore())
     .pipe($.rename(pkg.config.icons.destination))
@@ -223,6 +255,14 @@ gulp.task('favicons', () => (
     .pipe($.if(isProd, writeVersionFile()))
 ));
 
+/**
+ * Handle fonts
+ */
+gulp.task('fonts', () => (
+    gulp.src(pkg.config.fonts.source)
+    .pipe(gulp.dest(pkg.config.fonts.destination))
+));
+
 // We run in sequence so build files can be deleted first and to avoid
 // overwriting the versions file if everything tries to save at the same time.
 gulp.task('build', callback => (
@@ -233,6 +273,7 @@ gulp.task('build', callback => (
         'images',
         'icons',
         'favicons',
+        'fonts',
         callback
     )
 ));
@@ -253,63 +294,8 @@ gulp.task('default', ['build'], () => {
     gulp.watch(pkg.config.styles.watch, ['styles']);
     gulp.watch(pkg.config.scripts.watch, ['scripts']);
     gulp.watch(pkg.config.images.watch, ['images']).on('change', $.browserSync.reload);
-    gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload).on('error', error => handleError(error));
+    gulp.watch(pkg.config.templates.watch).on('change', $.browserSync.reload).on('error', error => handleError(error, false));
     gulp.watch(pkg.config.icons.watch, ['icons']).on('change', $.browserSync.reload);
     gulp.watch(pkg.config.favicons.watch, ['favicons']).on('change', $.browserSync.reload);
+    gulp.watch(pkg.config.fonts.watch, ['fonts']).on('change', $.browserSync.reload);
 });
-
-/**
- * Generate and move critical css to the templates folder
- */
-function createCriticalCSS(element, i, callback) {
-    const criticalSrc = pkg.urls.critical + element.url;
-    const criticalDest = `${pkg.config.public.templates}_critical/${element.template}_critical.css`;
-    let criticalWidth = 1200;
-    let criticalHeight = 1200;
-    if (element.template.indexOf('amp_') !== -1) {
-        criticalWidth = 600;
-        criticalHeight = 19200;
-    }
-    $.critical.generate({
-        src: criticalSrc,
-        dest: criticalDest,
-        inline: false,
-        ignore: [],
-        base: pkg.config.public.base,
-        css: [
-            `${pkg.config.public.base}/${pkg.config.styles.destination}`,
-        ],
-        minify: true,
-        width: criticalWidth,
-        height: criticalHeight
-    }, (err, output) => {
-        callback();
-    });
-}
-
-/**
- * Create critical css with a headless browser
- */
-gulp.task('critical-css', ['styles'], callback => {
-    doSynchronousLoop(pkg.config.critical, createCriticalCSS, () => {
-        callback();
-    });
-});
-
-// Process data in an array synchronously, moving onto the n+1 item only after the nth item callback
-function doSynchronousLoop(data, processData, done) {
-    if (data.length > 0) {
-        const loop = (data, i, processData, done) => {
-            processData(data[i], i, () => {
-                if (++i < data.length) {
-                    loop(data, i, processData, done);
-                } else {
-                    done();
-                }
-            });
-        };
-        loop(data, 0, processData, done);
-    } else {
-        done();
-    }
-}

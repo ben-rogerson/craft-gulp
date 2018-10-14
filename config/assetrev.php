@@ -24,7 +24,7 @@ return [
     // such as Gulp or Grunt. The path will be relative to your Craft base
     // directory, unless you supply an absolute path.
 
-    'manifestPath' => 'public/build/revisions.json',
+    'manifestPath' => 'public/assets/build/versions.json',
 
     // The path where your built asset files can be found. Required for query
     // string creation. Again, this is relative to your Craft base directory,

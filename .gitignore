@@ -3,8 +3,7 @@ node_modules
 vendor
 
 # Built folders + files
-public/build
-versions.json
+public/assets/build
 
 # Craft > Storage
 storage/backups
