@@ -25,6 +25,24 @@ return [
 
         // The secure key Craft will use for hashing and encrypting data
         'securityKey' => getenv('SECURITY_KEY'),
+        
+        // Fuzzy search
+		'defaultSearchTermOptions' => array(
+			'subLeft' => true,
+			'subRight' => true,
+		),
+
+		// No-one wants to set a username
+		'useEmailAsUsername' => true,
+        
+        // Bumped to 32MB
+		'maxUploadFileSize' => 33554432,
+
+		// Disable public templates
+		'privateTemplateTrigger' => '',
+
+		// Make Craft generate image transforms, not users
+		'generateTransformsBeforePageLoad' => true,
     ],
 
     // Dev environment settings
