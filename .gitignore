@@ -37,3 +37,11 @@ yarn.lock
 
 # Sensitive files
 .env
+
+# Craft > Storage
+storage/*
+
+# Use .gitkeep files to keep ignored directories
+# eg: /path/to/dir/*
+!/**/.gitkeep
+
