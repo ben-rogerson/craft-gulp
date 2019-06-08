@@ -17,7 +17,7 @@
     "nystudio107/craft-seomatic": "3.1.46",
     "am-impact/amcommand": "3.1.4",
     "studioespresso/craft-dumper": "1.3.1",
-    "clubstudioltd/craft-asset-rev": "6.0.2",
+    "clubstudioltd/craft-asset-rev": "6.0.2"
   },
   "autoload": {
     "psr-4": {
