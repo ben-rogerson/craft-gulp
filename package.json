@@ -9,51 +9,51 @@
         "fix": "eslint src/js --fix"
     },
     "config": {
-        "devUrl": "https://craft-gulp.test",
-        "public": {
-            "base": "public",
-            "build": "public/assets/build"
-        },
-        "scripts": {
-            "watch": "src/js/**/*.js",
-            "source": [
-                "src/js/*.js"
-            ],
-            "destination": "public/assets/build/js"
-        },
-        "styles": {
-            "watch": "src/scss/**/*.scss",
-            "source": "src/scss/*.scss",
-            "destination": "public/assets/build/css"
-        },
-        "images": {
-            "watch": "src/img/**/*",
-            "source": "src/img/**/*.{png,jpg,jpeg,gif,svg}",
-            "destination": "public/assets/build/img"
-        },
-        "icons": {
-            "watch": "src/icons/**/*.svg",
-            "source": "src/icons/**/*.svg",
-            "destination": "public/assets/build/icons.svg"
-        },
-        "favicons": {
-            "watch": "src/favicons/**/*",
-            "source": "src/favicons/**/*",
-            "destination": "public/assets/build/favicons"
-        },
-        "fonts": {
-            "watch": "src/fonts/**/*",
-            "source": "src/fonts/**/*",
-            "destination": "public/assets/build/fonts"
-        },
-        "templates": {
-            "watch": "templates/**/*.twig",
-            "source": "templates"
-        },
-        "manifest": {
-            "destination": "public/assets/build/versions.json"
-        }
-    },
+		"devUrl": "https://craft-gulp.test",
+		"public": {
+			"base": "public",
+			"build": "public/assets/build"
+		},
+		"scripts": {
+			"watch": "src/js/**/*.js",
+			"source": [
+				"src/js/*.js"
+			],
+			"destination": "public/assets/build/js"
+		},
+		"styles": {
+			"watch": "src/scss/**/*.scss",
+			"source": "src/scss/*.scss",
+			"destination": "public/assets/build/css"
+		},
+		"images": {
+			"watch": "src/img/**/*",
+			"source": "src/img/**/*.{png,jpg,jpeg,gif,svg}",
+			"destination": "public/assets/build/img"
+		},
+		"icons": {
+			"watch": "src/icons/**/*.svg",
+			"source": "src/icons/**/*.svg",
+			"destination": "public/assets/build/icons.svg"
+		},
+		"favicons": {
+			"watch": "src/favicons/**/*",
+			"source": "src/favicons/**/*",
+			"destination": "public/assets/build/favicons"
+		},
+		"fonts": {
+			"watch": "src/fonts/**/*",
+			"source": "src/fonts/**/*",
+			"destination": "public/assets/build/fonts"
+		},
+		"templates": {
+			"watch": "templates/**/*.twig",
+			"source": "templates"
+		},
+		"manifest": {
+			"destination": "public/assets/build/versions.json"
+		}
+	},
     "browserify-shim": {
         "node_modules/jquery/dist/jquery.js": "$"
     },
@@ -62,55 +62,48 @@
         "lodash": "^4.17.11"
     },
     "devDependencies": {
-        "@babel/core": "^7.1.2",
-        "@babel/plugin-proposal-class-properties": "^7.1.0",
-        "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
-        "@babel/preset-env": "^7.1.0",
-        "autoprefixer": "^9.1.5",
-        "babelify": "^10.0.0",
-        "browser-sync": "^2.26.3",
-        "browserify": "^16.2.3",
-        "browserify-shim": "^3.8.14",
-        "chalk": "^2.4.1",
-        "critical": "1.3.4",
-        "cssnano": "^4.1.4",
-        "eslint-config-airbnb-base": "^13.1.0",
-        "eslint-formatter-pretty": "^1.3.0",
-        "eslint-plugin-import": "^2.14.0",
-        "gulp": "^3.9.1",
-        "gulp-babel": "^8.0.0-beta.2",
-        "gulp-bro": "^1.0.3",
-        "gulp-buffer": "0.0.2",
-        "gulp-cached": "^1.1.1",
-        "gulp-changed": "^3.2.0",
-        "gulp-clean": "^0.4.0",
-        "gulp-color": "0.0.2",
-        "gulp-concat": "^2.6.1",
-        "gulp-eslint": "^5.0.0",
-        "gulp-header": "^2.0.5",
-        "gulp-if": "^2.0.2",
-        "gulp-imagemin": "^4.1.0",
-        "gulp-load-plugins": "^1.5.0",
-        "gulp-newer": "^1.4.0",
-        "gulp-notify": "^3.2.0",
-        "gulp-plumber": "^1.2.0",
-        "gulp-postcss": "^8.0.0",
-        "gulp-rename": "^1.4.0",
-        "gulp-rev": "^8.1.1",
-        "gulp-rev-rewrite": "^1.1.1",
-        "gulp-sass": "^4.0.1",
-        "gulp-sass-variables": "^1.2.0",
-        "gulp-size": "^3.0.0",
-        "gulp-sourcemaps": "^2.6.4",
-        "gulp-svgmin": "^2.1.0",
-        "gulp-svgstore": "^7.0.0",
-        "gulp-twig": "^1.2.0",
-        "gulp-uglify": "^3.0.1",
-        "moment": "^2.22.2",
-        "node-notifier": "^5.2.1",
-        "os": "^0.1.1",
-        "run-sequence": "^2.2.1",
-        "stream-combiner2": "^1.1.1",
-        "vinyl-buffer": "^1.0.1"
+		"@babel/core": "^7.4.0",
+		"@babel/plugin-proposal-class-properties": "^7.4.0",
+		"@babel/plugin-proposal-object-rest-spread": "^7.4.0",
+		"@babel/preset-env": "^7.4.1",
+		"autoprefixer": "^9.5.0",
+		"babel-plugin-transform-inline-environment-variables": "^0.4.3",
+		"babelify": "^10.0.0",
+		"browser-sync": "^2.26.3",
+		"browserify": "^16.2.3",
+		"browserify-shim": "^3.8.14",
+		"cssnano": "^4.1.10",
+		"gulp": "3.9.1",
+		"gulp-babel": "^8.0.0",
+		"gulp-bro": "^1.0.3",
+		"gulp-cached": "^1.1.1",
+		"gulp-changed": "^3.2.0",
+		"gulp-clean": "^0.4.0",
+		"gulp-color": "0.0.2",
+		"gulp-concat": "^2.6.1",
+		"gulp-if": "^2.0.2",
+		"gulp-imagemin": "4.1.0",
+		"gulp-load-plugins": "^1.5.0",
+		"gulp-newer": "^1.4.0",
+		"gulp-notify": "^3.2.0",
+		"gulp-plumber": "^1.2.1",
+		"gulp-postcss": "^8.0.0",
+		"gulp-print": "^5.0.2",
+		"gulp-rename": "^1.4.0",
+		"gulp-rev": "^9.0.0",
+		"gulp-rev-rewrite": "^1.1.4",
+		"gulp-sass": "^4.0.2",
+		"gulp-sass-variables": "^1.2.0",
+		"gulp-size": "^3.0.0",
+		"gulp-sourcemaps": "^2.6.5",
+		"gulp-svgmin": "^2.1.0",
+		"gulp-svgstore": "^7.0.1",
+		"gulp-uglify-es": "^1.0.4",
+		"moment": "^2.24.0",
+		"natives": "^1.1.6",
+		"node-notifier": "^5.4.0",
+		"rev-del": "^2.0.0",
+		"run-sequence": "^2.2.1",
+		"vinyl-buffer": "^1.0.1"
     }
 }
