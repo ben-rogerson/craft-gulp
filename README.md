@@ -1,7 +1,8 @@
 # craft-gulp
 
-An agency-battletested production-ready boilerplate to help you get you started in Craft CMS 3.
+## This repo is still kept current but perhaps you could try out my newer [Webpack-mix config](https://github.com/ben-rogerson/agency-webpack-mix-config). You can still integrate it with Craft - instructions in the readme.
 
+An agency-battletested production-ready boilerplate to help you get you started in Craft CMS 3.
 
 ### Getting started
 
@@ -44,7 +45,6 @@ npm start
     - Compression for GIF/JPG/PNG/SVG
 - SVG Sprite Conversion
 - Favicons
-- Critical CSS
 
 ## Production
 
