@@ -69,7 +69,7 @@
 		"autoprefixer": "^9.5.0",
 		"babel-plugin-transform-inline-environment-variables": "^0.4.3",
 		"babelify": "^10.0.0",
-		"browser-sync": "^2.26.3",
+		"browser-sync": "^2.26.7",
 		"browserify": "^16.2.3",
 		"browserify-shim": "^3.8.14",
 		"cssnano": "^4.1.10",
